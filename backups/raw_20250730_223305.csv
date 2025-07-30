@@ -1,0 +1,4 @@
+id,tipo,descripcion,monto,fecha,creado_en
+1,ingreso,Pago de cliente ACME,125000.50,2025-07-30 12:00:00,2025-07-30 18:50:06
+2,ingreso,IBM - Consultoria,100000.00,2025-07-30 00:00:00,2025-07-30 20:32:02
+3,gasto,Cisco - Router,25000.00,2025-07-30 00:00:00,2025-07-30 20:32:25

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contabilidad Web</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>Contabilidad Web</h1>
+  </header>
+
+  <div class="container">
+    <aside>
+      <nav>
+        <h3>Ingresos</h3>
+        <ul>
+          <li onclick="mostrarSeccion('factura-venta')">Facturas de venta</li>
+          <li>Facturas recurrentes</li>
+          <li>Pagos recibidos</li>
+        </ul>
+        <h3>Gastos</h3>
+        <ul>
+          <li onclick="mostrarSeccion('factura-compra')">Facturas de compra</li>
+          <li>Pagos</li>
+          <li>Órdenes de compra</li>
+        </ul>
+        <h3>Admin</h3>
+        <ul>
+          <li onclick="mostrarSeccion('admin-etl')">🛠 Datos limpios (ETL)</li>
+        </ul>
+      </nav>
+    </aside>
+
+    <main>
+      <!-- Sección: Factura de Venta -->
+      <section id="factura-venta" class="contenido-seccion">
+        <h2>Registrar Factura de Venta</h2>
+        <form id="form-venta">
+          <label>Cliente:</label>
+          <input type="text" name="cliente" required />
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" required />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required />
+          <label>Fecha:</label>
+          <input type="date" name="fecha" required />
+          <button type="submit">Guardar factura</button>
+        </form>
+      </section>
+
+      <!-- Sección: Factura de Compra -->
+      <section id="factura-compra" class="contenido-seccion" style="display: none;">
+        <h2>Registrar Factura de Compra</h2>
+        <form id="form-compra">
+          <label>Proveedor:</label>
+          <input type="text" name="proveedor" required />
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" required />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required />
+          <label>Fecha:</label>
+          <input type="date" name="fecha" required />
+          <button type="submit">Guardar factura</button>
+        </form>
+      </section>
+
+      <!-- Sección: Admin / ETL -->
+      <section id="admin-etl" class="contenido-seccion" style="display: none;">
+        <h2>🛠 Visualización de datos limpios</h2>
+        <button onclick="ejecutarPipeline()">Ejecutar limpieza manual</button>
+
+        <h3>Registros limpios</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Tipo</th>
+              <th>Descripción</th>
+              <th>Monto</th>
+              <th>Fecha</th>
+              <th>Validado por</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-etl"></tbody>
+        </table>
+      </section>
+    </main>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
