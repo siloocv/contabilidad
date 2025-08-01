@@ -1,0 +1,18 @@
+{
+    "timestamp": "20250801_132159",
+    "registros_totales": 4,
+    "registros_limpios": 4,
+    "facturas_venta_nuevas": [
+        4
+    ],
+    "facturas_compra_nuevas": [],
+    "pagos_recibidos_nuevos": [],
+    "pagos_proveedor_nuevos": [],
+    "ordenes_compra_nuevas": [
+        2
+    ],
+    "plantillas_recurrentes": [],
+    "instancias_recurrentes": [],
+    "raw_backup": "backups/raw_20250801_132159.csv",
+    "cleaned_backup": "backups/cleaned_20250801_132159.csv"
+}

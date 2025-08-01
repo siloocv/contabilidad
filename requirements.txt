@@ -1,5 +1,5 @@
-fastapi[all]
+fastapi
 uvicorn[standard]
 sqlalchemy
 pymysql
-apscheduler
+pydantic

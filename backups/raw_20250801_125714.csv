@@ -1,0 +1,3 @@
+id,tipo,descripcion,monto,fecha,creado_en,tabla_destino
+1,ingreso,acme corp - Servicio premium,1500.75,2025-08-01 00:00:00,2025-08-01 18:53:01,facturas_venta
+2,gasto,Proveedor X - Compra insumos,800.50,2025-08-01 00:00:00,2025-08-01 18:55:12,facturas_compra

@@ -4,6 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contabilidad Web</title>
+  <script>
+    // Cambiás esto si el backend está en otro lado
+    window.__API_BASE__ = "http://127.0.0.1:8000";
+  </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
@@ -16,25 +20,25 @@
       <nav>
         <h3>Ingresos</h3>
         <ul>
-          <li onclick="mostrarSeccion('factura-venta')">Facturas de venta</li>
-          <li>Facturas recurrentes</li>
-          <li>Pagos recibidos</li>
+          <li data-target="factura-venta">Facturas de venta</li>
+          <li data-target="recurrentes">Facturas recurrentes</li>
+          <li data-target="pagos-recibidos">Pagos recibidos</li>
         </ul>
         <h3>Gastos</h3>
         <ul>
-          <li onclick="mostrarSeccion('factura-compra')">Facturas de compra</li>
-          <li>Pagos</li>
-          <li>Órdenes de compra</li>
+          <li data-target="factura-compra">Facturas de compra</li>
+          <li data-target="orden-compra">Órdenes de compra</li>
+          <li data-target="pagos-proveedor">Pagos a proveedor</li>
         </ul>
         <h3>Admin</h3>
         <ul>
-          <li onclick="mostrarSeccion('admin-etl')">🛠 Datos limpios (ETL)</li>
+          <li data-target="admin-etl">🛠 Datos limpios (ETL)</li>
         </ul>
       </nav>
     </aside>
 
     <main>
-      <!-- Sección: Factura de Venta -->
+      <!-- Factura de Venta -->
       <section id="factura-venta" class="contenido-seccion">
         <h2>Registrar Factura de Venta</h2>
         <form id="form-venta">
@@ -43,15 +47,16 @@
           <label>Descripción:</label>
           <input type="text" name="descripcion" required />
           <label>Monto (₡):</label>
-          <input type="number" name="monto" required />
+          <input type="number" name="monto" required step="0.01" />
           <label>Fecha:</label>
           <input type="date" name="fecha" required />
           <button type="submit">Guardar factura</button>
+          <div class="status-container"></div>
         </form>
       </section>
 
-      <!-- Sección: Factura de Compra -->
-      <section id="factura-compra" class="contenido-seccion" style="display: none;">
+      <!-- Factura de Compra -->
+      <section id="factura-compra" class="contenido-seccion" style="display:none;">
         <h2>Registrar Factura de Compra</h2>
         <form id="form-compra">
           <label>Proveedor:</label>
@@ -59,28 +64,100 @@
           <label>Descripción:</label>
           <input type="text" name="descripcion" required />
           <label>Monto (₡):</label>
-          <input type="number" name="monto" required />
+          <input type="number" name="monto" required step="0.01" />
           <label>Fecha:</label>
           <input type="date" name="fecha" required />
           <button type="submit">Guardar factura</button>
+          <div class="status-container"></div>
         </form>
       </section>
 
-      <!-- Sección: Admin / ETL -->
-      <section id="admin-etl" class="contenido-seccion" style="display: none;">
+      <!-- Facturas Recurrentes -->
+      <section id="recurrentes" class="contenido-seccion" style="display:none;">
+        <h2>Crear plantilla de factura recurrente</h2>
+        <form id="form-recurrente">
+          <label>Cliente:</label>
+          <input type="text" name="cliente" required />
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" required />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required step="0.01" />
+          <label>Frecuencia (ej. mensual):</label>
+          <input type="text" name="frecuencia" required />
+          <button type="submit">Crear plantilla</button>
+          <div class="status-container"></div>
+        </form>
+        <h3>Plantillas existentes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Frecuencia</th><th>Siguiente generación</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-recurrentes"></tbody>
+        </table>
+      </section>
+
+      <!-- Pagos Recibidos -->
+      <section id="pagos-recibidos" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Pago Recibido</h2>
+        <form id="form-pago-recibido">
+          <label>ID factura venta (fv):</label>
+          <input type="number" name="factura_id" required />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required step="0.01" />
+          <label>Fecha:</label>
+          <input type="date" name="fecha" required />
+          <button type="submit">Registrar pago</button>
+          <div class="status-container"></div>
+        </form>
+      </section>
+
+      <!-- Orden de Compra -->
+      <section id="orden-compra" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Orden de Compra</h2>
+        <form id="form-orden-compra">
+          <label>Proveedor:</label>
+          <input type="text" name="proveedor" required />
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" required />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required step="0.01" />
+          <label>Fecha:</label>
+          <input type="date" name="fecha" required />
+          <button type="submit">Registrar orden</button>
+          <div class="status-container"></div>
+        </form>
+      </section>
+
+      <!-- Pagos a Proveedor -->
+      <section id="pagos-proveedor" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Pago a Proveedor</h2>
+        <form id="form-pago-proveedor">
+          <label>ID factura compra (fc):</label>
+          <input type="number" name="factura_compra_id" />
+          <label>ID orden compra (oc):</label>
+          <input type="number" name="orden_compra_id" />
+          <label>Monto (₡):</label>
+          <input type="number" name="monto" required step="0.01" />
+          <label>Fecha:</label>
+          <input type="date" name="fecha" required />
+          <button type="submit">Registrar pago</button>
+          <div class="status-container"></div>
+        </form>
+      </section>
+
+      <!-- Admin / ETL -->
+      <section id="admin-etl" class="contenido-seccion" style="display:none;">
         <h2>🛠 Visualización de datos limpios</h2>
-        <button onclick="ejecutarPipeline()">Ejecutar limpieza manual</button>
+        <button id="btn-run-pipeline">Ejecutar limpieza manual</button>
+        <div class="status-container"></div>
 
         <h3>Registros limpios</h3>
         <table>
           <thead>
             <tr>
-              <th>ID</th>
-              <th>Tipo</th>
-              <th>Descripción</th>
-              <th>Monto</th>
-              <th>Fecha</th>
-              <th>Validado por</th>
+              <th>ID</th><th>Tipo</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Validado por</th><th>Tabla destino</th>
             </tr>
           </thead>
           <tbody id="tabla-etl"></tbody>

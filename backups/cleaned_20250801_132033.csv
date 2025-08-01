@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino
+1,ingreso,jola - hola,500.0,2025-08-24 00:00:00,2025-08-01 19:20:27,etl_pipeline,facturas_venta

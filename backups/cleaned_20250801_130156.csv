@@ -1,0 +1,4 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino
+1,ingreso,acme corp - Servicio premium,1500.75,2025-08-01 00:00:00,2025-08-01 18:53:01,etl_pipeline,facturas_venta
+2,gasto,Proveedor X - Compra insumos,800.5,2025-08-01 00:00:00,2025-08-01 18:55:12,etl_pipeline,facturas_compra
+3,orden_compra,Proveedor Z - Compra de piezas,1200.0,2025-08-02 00:00:00,2025-08-01 19:01:13,etl_pipeline,ordenes_compra
