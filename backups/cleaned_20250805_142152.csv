@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+8,ingreso,pruebahola - prueba4,58.0,2025-07-29 00:00:00,2025-08-05 20:21:49,etl_pipeline,facturas_venta,efca3dbfc84e644924db09b4ebd694f3c3a251a7359c2b4290c5b16068fb8500

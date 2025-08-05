@@ -1,0 +1,15 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino
+1,ingreso,ClienteA - Venta de producto X,1500.0,2025-08-05 00:00:00,2025-08-05 19:00:00,etl_pipeline,facturas_venta
+2,gasto,ProveedorB - Compra de insumos,800.0,2025-08-05 00:00:00,2025-08-05 19:00:14,etl_pipeline,facturas_compra
+3,orden_compra,ProveedorC - Orden de componentes,1200.0,2025-08-05 00:00:00,2025-08-05 19:00:48,etl_pipeline,ordenes_compra
+4,pago_recibido,fv:1,1500.0,2025-08-06 00:00:00,2025-08-05 19:01:01,etl_pipeline,pagos_recibidos
+5,pago_proveedor,fc:2,800.0,2025-08-06 00:00:00,2025-08-05 19:01:16,etl_pipeline,pagos_proveedor
+6,ingreso,oko - hola,520.0,2025-08-27 00:00:00,2025-08-05 20:06:54,etl_pipeline,facturas_venta
+7,ingreso,jola - prueba4,51.0,2025-07-29 00:00:00,2025-08-05 20:15:17,etl_pipeline,facturas_venta
+8,ingreso,pruebahola - prueba4,58.0,2025-07-29 00:00:00,2025-08-05 20:21:49,etl_pipeline,facturas_venta
+9,gasto,belca - hola,800.0,2025-08-14 00:00:00,2025-08-05 20:23:16,etl_pipeline,facturas_compra
+10,gasto,belca - aguga,500.0,2025-08-13 00:00:00,2025-08-05 20:24:03,etl_pipeline,facturas_compra
+11,gasto,prueba2 - leche,500.0,2025-08-08 00:00:00,2025-08-05 20:24:38,etl_pipeline,facturas_compra
+12,orden_compra,belca - aguga,500.0,2025-08-13 00:00:00,2025-08-05 20:25:07,etl_pipeline,ordenes_compra
+13,ingreso,hudini - prueba,69.0,2025-08-06 00:00:00,2025-08-05 20:31:51,etl_pipeline,facturas_venta
+14,gasto,belca6 - hola,744.0,2025-08-06 00:00:00,2025-08-05 20:33:02,etl_pipeline,facturas_compra

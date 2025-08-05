@@ -1,0 +1,6 @@
+id,tipo,descripcion,monto,fecha,creado_en,tabla_destino
+1,ingreso,ClienteA - Venta de producto X,1500.00,2025-08-05 00:00:00,2025-08-05 19:00:00,facturas_venta
+2,gasto,ProveedorB - Compra de insumos,800.00,2025-08-05 00:00:00,2025-08-05 19:00:14,facturas_compra
+3,orden_compra,ProveedorC - Orden de componentes,1200.00,2025-08-05 00:00:00,2025-08-05 19:00:48,ordenes_compra
+4,pago_recibido,fv:1,1500.00,2025-08-06 00:00:00,2025-08-05 19:01:01,pagos_recibidos
+5,pago_proveedor,fc:2,800.00,2025-08-06 00:00:00,2025-08-05 19:01:16,pagos_proveedor

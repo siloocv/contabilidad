@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+3,orden_compra,Proveedor C - Orden #1234,1200.0,2025-08-07 00:00:00,2025-08-05 18:35:05,etl_pipeline,ordenes_compra,2ff53ed28c137baf92cd1815979678b0c77466916c45b24e518ac6893b271340

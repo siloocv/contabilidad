@@ -1,0 +1,3 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+10,gasto,belca - aguga,500.0,2025-08-13 00:00:00,2025-08-05 20:24:03,etl_pipeline,facturas_compra,ea331670678d7de0a0d017481fa1bc6152885d3b6033fb43a34c345f86bd33c4
+11,gasto,prueba2 - leche,500.0,2025-08-08 00:00:00,2025-08-05 20:24:38,etl_pipeline,facturas_compra,f4f3189f0d77c4eb1955194a2be63b7dda1b77bddf6a73fe24cc23f2799439fb

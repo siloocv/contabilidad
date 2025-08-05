@@ -1,0 +1,11 @@
+id,tipo,descripcion,monto,fecha,creado_en,tabla_destino
+1,ingreso,Cliente X - Servicio Inicial,1000.00,2025-08-05 00:00:00,2025-08-05 18:29:58,facturas_venta
+2,gasto,Proveedor B - Compra de insumos,800.00,2025-08-06 00:00:00,2025-08-05 18:33:06,facturas_compra
+3,orden_compra,Proveedor C - Orden #1234,1200.00,2025-08-07 00:00:00,2025-08-05 18:35:05,ordenes_compra
+4,factura_recurrente,Cliente D - Suscripción mensual,200.00,2025-08-01 00:00:00,2025-08-05 18:35:54,facturas_recurrentes_template
+5,pago_recibido,fv:10,1000.00,2025-08-08 00:00:00,2025-08-05 18:39:06,pagos_recibidos
+6,pago_proveedor,fc:20,800.00,2025-08-09 00:00:00,2025-08-05 18:40:18,pagos_proveedor
+7,ingreso,Cliente E - Consultoría Especializada,1750.00,2025-08-10 00:00:00,2025-08-05 18:46:12,facturas_venta
+8,gasto,Proveedor F - Papelería y Útiles,320.50,2025-08-11 00:00:00,2025-08-05 18:46:26,facturas_compra
+9,pago_proveedor,oc:<ID_ORDEN_COMPRA>,1420.75,2025-08-14 00:00:00,2025-08-05 18:47:05,pagos_proveedor
+10,orden_compra,Proveedor G - Orden #5678,1420.75,2025-08-12 00:00:00,2025-08-05 18:49:06,ordenes_compra

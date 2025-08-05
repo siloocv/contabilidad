@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+1,ingreso,Cliente X - Servicio Inicial,1000.0,2025-08-05 00:00:00,2025-08-05 18:29:58,etl_pipeline,facturas_venta,9b731b0e5086fcb76cbea5d40907d9648baa7e83e20456bc6acf3c6fd2aeac05

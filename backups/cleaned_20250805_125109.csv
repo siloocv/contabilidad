@@ -1,0 +1,7 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+5,pago_recibido,fv:10,1000.0,2025-08-08 00:00:00,2025-08-05 18:39:06,etl_pipeline,pagos_recibidos,2c63b9aaed8c08fb93cde48a7307f95dfd8af4aa6ccc174b26fa7c01bae1ed70
+6,pago_proveedor,fc:20,800.0,2025-08-09 00:00:00,2025-08-05 18:40:18,etl_pipeline,pagos_proveedor,0a07354370fdcfab565df238b7f368bfef3e564ad5eb8836cbbba30cb843ef35
+7,ingreso,Cliente E - Consultoría Especializada,1750.0,2025-08-10 00:00:00,2025-08-05 18:46:12,etl_pipeline,facturas_venta,80cf0408701a02b6e3420455ee58617c8aac92196a2c4049a8ffa074405d3f4d
+8,gasto,Proveedor F - Papelería y Útiles,320.5,2025-08-11 00:00:00,2025-08-05 18:46:26,etl_pipeline,facturas_compra,7a971056742c565602ebed15a5fb7fecbfecd0f9a6ef170c3aa8d09d73876f52
+9,pago_proveedor,oc:<ID_ORDEN_COMPRA>,1420.75,2025-08-14 00:00:00,2025-08-05 18:47:05,etl_pipeline,pagos_proveedor,8420c064e0251772d1aa17d463ed2c3db08dfbdc892321eb86fe3d4a5c562273
+10,orden_compra,Proveedor G - Orden #5678,1420.75,2025-08-12 00:00:00,2025-08-05 18:49:06,etl_pipeline,ordenes_compra,97e6d927c25e5076e1139e1dd9cd4734381aee800fcc3c57a2768a06c70fbd70

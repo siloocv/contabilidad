@@ -1,0 +1,7 @@
+{
+  "timestamp": "20250805_143304",
+  "total_raw": 14,
+  "total_cleaned": 14,
+  "raw_backup": "backups/raw_20250805_143304.csv",
+  "cleaned_backup": "backups/cleaned_20250805_143304.csv"
+}

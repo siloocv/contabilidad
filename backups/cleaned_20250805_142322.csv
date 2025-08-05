@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+9,gasto,belca - hola,800.0,2025-08-14 00:00:00,2025-08-05 20:23:16,etl_pipeline,facturas_compra,b71189f18e7147284f1eb4a85415875296c2e33a73c14cafc16fe44fb9f7a407

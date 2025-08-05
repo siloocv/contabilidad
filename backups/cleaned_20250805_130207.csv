@@ -1,0 +1,6 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,hash
+1,ingreso,ClienteA - Venta de producto X,1500.0,2025-08-05 00:00:00,2025-08-05 19:00:00,etl_pipeline,facturas_venta,aac488a3a1372d96a8e0d1001038d96f11b1e8cea7b58e543f00202a26a5eecb
+2,gasto,ProveedorB - Compra de insumos,800.0,2025-08-05 00:00:00,2025-08-05 19:00:14,etl_pipeline,facturas_compra,553a5a506d2214b31988ac737bc2cd08e6baff980588924e97b4059f7de3c747
+3,orden_compra,ProveedorC - Orden de componentes,1200.0,2025-08-05 00:00:00,2025-08-05 19:00:48,etl_pipeline,ordenes_compra,cf7410aad1aa61d450ef4f2935b56faab4271d01e2490a059a4578f6a88c0232
+4,pago_recibido,fv:1,1500.0,2025-08-06 00:00:00,2025-08-05 19:01:01,etl_pipeline,pagos_recibidos,d8426999259b450f420404b44477cf91dd704cdb259689c95abf2f25cfe6d1f8
+5,pago_proveedor,fc:2,800.0,2025-08-06 00:00:00,2025-08-05 19:01:16,etl_pipeline,pagos_proveedor,20c8cae12b693cb8f35c3960a350290630b1991c01664a656ef2ea3a54f33412
