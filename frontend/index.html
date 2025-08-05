@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Contabilidad Web</title>
   <script>
-    // Cambiás esto si el backend está en otro lado
     window.__API_BASE__ = "http://127.0.0.1:8000";
   </script>
   <link rel="stylesheet" href="style.css" />
@@ -30,6 +29,11 @@
           <li data-target="orden-compra">Órdenes de compra</li>
           <li data-target="pagos-proveedor">Pagos a proveedor</li>
         </ul>
+        <h3>Maestros</h3>
+        <ul>
+          <li data-target="clientes">Clientes</li>
+          <li data-target="productos">Productos</li>
+        </ul>
         <h3>Admin</h3>
         <ul>
           <li data-target="admin-etl">🛠 Datos limpios (ETL)</li>
@@ -53,6 +57,15 @@
           <button type="submit">Guardar factura</button>
           <div class="status-container"></div>
         </form>
+        <h3>Listado Facturas de Venta</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-venta"></tbody>
+        </table>
       </section>
 
       <!-- Factura de Compra -->
@@ -70,6 +83,15 @@
           <button type="submit">Guardar factura</button>
           <div class="status-container"></div>
         </form>
+        <h3>Listado Facturas de Compra</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Proveedor</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-compra"></tbody>
+        </table>
       </section>
 
       <!-- Facturas Recurrentes -->
@@ -91,7 +113,7 @@
         <table>
           <thead>
             <tr>
-              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Frecuencia</th><th>Siguiente generación</th>
+              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Frecuencia</th><th>Siguiente generación</th><th>Acciones</th>
             </tr>
           </thead>
           <tbody id="tabla-recurrentes"></tbody>
@@ -111,6 +133,15 @@
           <button type="submit">Registrar pago</button>
           <div class="status-container"></div>
         </form>
+        <h3>Listado Pagos Recibidos</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Factura Venta</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-pagos-recibidos"></tbody>
+        </table>
       </section>
 
       <!-- Orden de Compra -->
@@ -128,6 +159,15 @@
           <button type="submit">Registrar orden</button>
           <div class="status-container"></div>
         </form>
+        <h3>Listado Órdenes de Compra</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Proveedor</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-ordenes"></tbody>
+        </table>
       </section>
 
       <!-- Pagos a Proveedor -->
@@ -145,6 +185,69 @@
           <button type="submit">Registrar pago</button>
           <div class="status-container"></div>
         </form>
+        <h3>Listado Pagos a Proveedor</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Factura Compra</th><th>Orden Compra</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-pagos-proveedor"></tbody>
+        </table>
+      </section>
+
+      <!-- Clientes -->
+      <section id="clientes" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Cliente</h2>
+        <form id="form-clientes">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" required />
+          <label>Identificación:</label>
+          <input type="text" name="identificacion" />
+          <label>Correo:</label>
+          <input type="email" name="correo" />
+          <label>Teléfono:</label>
+          <input type="text" name="telefono" />
+          <label>Dirección:</label>
+          <input type="text" name="direccion" />
+          <button type="submit">Crear cliente</button>
+          <div class="status-container"></div>
+        </form>
+        <h3>Listado Clientes</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>Identificación</th><th>Correo</th><th>Teléfono</th><th>Dirección</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-clientes"></tbody>
+        </table>
+      </section>
+
+      <!-- Productos -->
+      <section id="productos" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Producto</h2>
+        <form id="form-productos">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" required />
+          <label>SKU:</label>
+          <input type="text" name="sku" />
+          <label>Precio unitario:</label>
+          <input type="number" name="precio_unitario" required step="0.01" />
+          <label>Descripción:</label>
+          <input type="text" name="descripcion" />
+          <button type="submit">Crear producto</button>
+          <div class="status-container"></div>
+        </form>
+        <h3>Listado Productos</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>SKU</th><th>Precio</th><th>Descripción</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-productos"></tbody>
+        </table>
       </section>
 
       <!-- Admin / ETL -->
@@ -152,7 +255,6 @@
         <h2>🛠 Visualización de datos limpios</h2>
         <button id="btn-run-pipeline">Ejecutar limpieza manual</button>
         <div class="status-container"></div>
-
         <h3>Registros limpios</h3>
         <table>
           <thead>
@@ -169,3 +271,6 @@
   <script src="main.js"></script>
 </body>
 </html>
+
+
+

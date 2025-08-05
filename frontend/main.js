@@ -7,308 +7,195 @@ function getApiBase() {
 }
 const API_BASE = getApiBase();
 
-// Mostrar sección
+// Mostrar sección del sidebar
 function mostrarSeccion(id) {
-  document.querySelectorAll(".contenido-seccion").forEach(s => (s.style.display = "none"));
+  document.querySelectorAll(".contenido-seccion").forEach(s => s.style.display = "none");
   const el = document.getElementById(id);
   if (el) el.style.display = "block";
-  // marcar activo
   document.querySelectorAll("aside li").forEach(li => {
     li.classList.toggle("active", li.dataset.target === id);
   });
 }
 
-// Mensajes inline
-function mostrarMensaje(container, texto, tipo="success") {
-  let cont = container.querySelector(".status-container");
+// Mostrar mensaje en un form
+function mostrarMensaje(form, texto, tipo = "success") {
+  let cont = form.querySelector(".status-container");
   if (!cont) {
     cont = document.createElement("div");
     cont.className = "status-container";
-    container.appendChild(cont);
+    form.append(cont);
   }
-  let msg = cont.querySelector(".mensaje");
-  if (!msg) {
-    msg = document.createElement("div");
-    msg.className = "mensaje";
-    cont.appendChild(msg);
-  }
-  msg.textContent = texto;
-  msg.className = `mensaje ${tipo}`;
+  cont.innerHTML = `<div class="mensaje ${tipo}">${texto}</div>`;
 }
 
-// Cargas y listeners
-document.addEventListener("DOMContentLoaded", () => {
-  // Sidebar navegación
-  document.querySelectorAll("aside li").forEach(li => {
-    const target = li.dataset.target;
-    if (target) {
-      li.addEventListener("click", () => mostrarSeccion(target));
-    }
+// Hacer fetch y poblar una tabla
+async function cargarTabla(path, tbodyId, cols) {
+  const res = await fetch(`${API_BASE}${path}`);
+  const data = await res.json();
+  const tbody = document.getElementById(tbodyId);
+  tbody.innerHTML = "";
+  data.forEach(item => {
+    const tr = document.createElement("tr");
+    cols.forEach(c => {
+      const td = document.createElement("td");
+      td.textContent = item[c] ?? "";
+      tr.append(td);
+    });
+    tr.innerHTML += `
+      <td>
+        <button class="btn-edit" data-path="${path}" data-id="${item.id}">✏️</button>
+        <button class="btn-delete" data-path="${path}" data-id="${item.id}">🗑️</button>
+      </td>`;
+    tbody.append(tr);
   });
+}
 
-  // Inicial
+// Carga inicial de todas las tablas
+function cargarTodo() {
+  cargarTabla("/api/facturas/venta/",             "tabla-venta",           ["id","cliente","descripcion","monto","fecha"]);
+  cargarTabla("/api/facturas/compra/",            "tabla-compra",          ["id","proveedor","descripcion","monto","fecha"]);
+  cargarTabla("/api/facturas/recurrentes/template/","tabla-recurrentes",    ["id","cliente","descripcion","monto","frecuencia","siguiente_generacion"]);
+  cargarTabla("/api/pagos/recibidos/",            "tabla-pagos-recibidos", ["id","factura_venta_id","monto","fecha"]);
+  cargarTabla("/api/ordenes/compra/",             "tabla-ordenes",         ["id","proveedor","descripcion","monto","fecha"]);
+  cargarTabla("/api/pagos/proveedor/",            "tabla-pagos-proveedor", ["id","factura_compra_id","orden_compra_id","monto","fecha"]);
+  cargarTabla("/api/clientes/",                   "tabla-clientes",        ["id","nombre","identificacion","correo","telefono","direccion"]);
+  cargarTabla("/api/productos/",                  "tabla-productos",       ["id","nombre","sku","precio_unitario","descripcion"]);
+  cargarTabla("/api/cleaned/",                    "tabla-etl",             ["id","tipo","descripcion","monto","fecha","validado_por","tabla_destino"]);
+}
+
+// Serializa un form a objeto
+function formToObject(form) {
+  const data = {};
+  new FormData(form).forEach((v,k) => data[k] = v);
+  return data;
+}
+
+// Envía un POST o PUT y refresca
+async function submitForm(form, endpoint, method="POST", extra={}) {
+  const payload = Object.assign(formToObject(form), extra);
+  try {
+    form.querySelector("button").disabled = true;
+    mostrarMensaje(form, "Enviando...", "loading");
+    const res = await fetch(`${API_BASE}${endpoint}`, {
+      method,
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
+    mostrarMensaje(form, "✅ Éxito", "success");
+    form.reset();
+    cargarTodo();
+  } catch (e) {
+    mostrarMensaje(form, `❌ ${e.message}`, "error");
+  } finally {
+    form.querySelector("button").disabled = false;
+  }
+}
+
+// Manejar clics en editar / borrar (delegación)
+async function handleTableClick(e) {
+  if (e.target.matches(".btn-delete")) {
+    const path = e.target.dataset.path;
+    const id   = e.target.dataset.id;
+    if (!confirm("¿Eliminar registro?")) return;
+    await fetch(`${API_BASE}${path}${id}/`, { method: "DELETE" });
+    cargarTodo();
+  }
+  // EDIT: fetch data, cargarlo en el form correspondiente
+  if (e.target.matches(".btn-edit")) {
+    const path = e.target.dataset.path;
+    const id   = e.target.dataset.id;
+    const res  = await fetch(`${API_BASE}${path}${id}/`);
+    const data = await res.json();
+    // Determinar qué formulario usar según path
+    let formId;
+    if (path.startsWith("/api/cliente"))       formId = "form-clientes";
+    else if (path.startsWith("/api/producto")) formId = "form-productos";
+    else if (path.includes("venta"))           formId = "form-venta";
+    else if (path.includes("compra"))          formId = "form-compra";
+    else if (path.includes("recurrentes"))     formId = "form-recurrente";
+    else if (path.includes("recibidos"))       formId = "form-pago-recibido";
+    else if (path.includes("ordenes"))         formId = "form-orden-compra";
+    else if (path.includes("proveedor"))       formId = "form-pago-proveedor";
+    // Cargar cada campo
+    const form = document.getElementById(formId);
+    if (!form) return;
+    for (const [k,v] of Object.entries(data)) {
+      if (form[k]) form[k].value = v;
+    }
+    // Cambiar submit para PUT
+    form.onsubmit = e2 => {
+      e2.preventDefault();
+      submitForm(form, path + id + "/", "PUT");
+      form.onsubmit = null; // restaurar
+    };
+    mostrarSeccion(formId.replace("form-",""));
+  }
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  // Sidebar
+  document.querySelectorAll("aside li").forEach(li => {
+    li.addEventListener("click", () => mostrarSeccion(li.dataset.target));
+  });
   mostrarSeccion("factura-venta");
 
-  // Formulario venta
-  document.getElementById("form-venta")?.addEventListener("submit", async e => {
+  // Vincular formularios
+  document.getElementById("form-venta")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const cliente = form.cliente.value.trim();
-    const descripcion = form.descripcion.value.trim();
-    const monto = parseFloat(form.monto.value);
-    const fecha = form.fecha.value;
-    const payload = {
-      tipo: "ingreso",
-      descripcion: `${cliente} - ${descripcion}`,
-      monto,
-      fecha
-    };
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Enviando...", "loading");
-      const res = await fetch(`${API_BASE}/api/raw/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Factura de venta guardada en raw", "success");
-        form.reset();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/raw/", "POST", { tipo:"ingreso", descripcion:`${e.target.cliente.value} - ${e.target.descripcion.value}` });
   });
-
-  // Formulario compra
-  document.getElementById("form-compra")?.addEventListener("submit", async e => {
+  document.getElementById("form-compra")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const proveedor = form.proveedor.value.trim();
-    const descripcion = form.descripcion.value.trim();
-    const monto = parseFloat(form.monto.value);
-    const fecha = form.fecha.value;
-    const payload = {
-      tipo: "gasto",
-      descripcion: `${proveedor} - ${descripcion}`,
-      monto,
-      fecha
-    };
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Enviando...", "loading");
-      const res = await fetch(`${API_BASE}/api/raw/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify(payload)
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Factura de compra guardada en raw", "success");
-        form.reset();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/raw/", "POST", { tipo:"gasto", descripcion:`${e.target.proveedor.value} - ${e.target.descripcion.value}` });
   });
-
-  // Recurrentes
-  document.getElementById("form-recurrente")?.addEventListener("submit", async e => {
+  document.getElementById("form-recurrente")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const cliente = form.cliente.value.trim();
-    const descripcion = form.descripcion.value.trim();
-    const monto = parseFloat(form.monto.value);
-    const frecuencia = form.frecuencia.value.trim();
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Creando plantilla...", "loading");
-      const res = await fetch(`${API_BASE}/api/facturas/recurrentes/template/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({cliente, descripcion, monto, frecuencia})
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Plantilla creada", "success");
-        form.reset();
-        cargarTemplatesRecurrentes();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/facturas/recurrentes/template/");
   });
-
-  // Pago recibido
-  document.getElementById("form-pago-recibido")?.addEventListener("submit", async e => {
+  document.getElementById("form-pago-recibido")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const factura_id = parseInt(form.factura_id.value);
-    const monto = parseFloat(form.monto.value);
-    const fecha = form.fecha.value;
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Registrando pago...", "loading");
-      const res = await fetch(`${API_BASE}/api/pagos/recibidos/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({factura_venta_id: factura_id, monto, fecha})
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Pago registrado", "success");
-        form.reset();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/pagos/recibidos/");
   });
-
-  // Orden de compra
-  document.getElementById("form-orden-compra")?.addEventListener("submit", async e => {
+  document.getElementById("form-orden-compra")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const proveedor = form.proveedor.value.trim();
-    const descripcion = form.descripcion.value.trim();
-    const monto = parseFloat(form.monto.value);
-    const fecha = form.fecha.value;
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Registrando orden...", "loading");
-      const res = await fetch(`${API_BASE}/api/raw/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({tipo: "orden_compra", descripcion: `${proveedor} - ${descripcion}`, monto, fecha})
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Orden guardada en raw", "success");
-        form.reset();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/raw/", "POST", { tipo:"orden_compra", descripcion:`${e.target.proveedor.value} - ${e.target.descripcion.value}` });
   });
-
-  // Pago a proveedor
-  document.getElementById("form-pago-proveedor")?.addEventListener("submit", async e => {
+  document.getElementById("form-pago-proveedor")?.addEventListener("submit", e => {
     e.preventDefault();
-    const form = e.target;
-    const factura_compra_id = form.factura_compra_id.value ? parseInt(form.factura_compra_id.value) : null;
-    const orden_compra_id = form.orden_compra_id.value ? parseInt(form.orden_compra_id.value) : null;
-    const monto = parseFloat(form.monto.value);
-    const fecha = form.fecha.value;
-    try {
-      form.querySelector("button").disabled = true;
-      mostrarMensaje(form, "Registrando pago...", "loading");
-      const res = await fetch(`${API_BASE}/api/pagos/proveedor/`, {
-        method: "POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({factura_compra_id, orden_compra_id, monto, fecha})
-      });
-      if (res.ok) {
-        mostrarMensaje(form, "✅ Pago registrado", "success");
-        form.reset();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(form, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(form, "❌ Error de conexión", "error");
-    } finally {
-      form.querySelector("button").disabled = false;
-    }
+    submitForm(e.target, "/api/pagos/proveedor/");
+  });
+  document.getElementById("form-clientes")?.addEventListener("submit", e => {
+    e.preventDefault();
+    submitForm(e.target, "/api/clientes/");
+  });
+  document.getElementById("form-productos")?.addEventListener("submit", e => {
+    e.preventDefault();
+    submitForm(e.target, "/api/productos/");
   });
 
   // Pipeline
   document.getElementById("btn-run-pipeline")?.addEventListener("click", async () => {
-    const section = document.getElementById("admin-etl");
-    mostrarMensaje(section, "Ejecutando pipeline...", "loading");
+    const sec = document.getElementById("admin-etl");
+    mostrarMensaje(sec, "Ejecutando pipeline...", "loading");
     try {
-      const res = await fetch(`${API_BASE}/api/pipeline/run`, {method:"POST"});
-      if (res.ok) {
-        mostrarMensaje(section, "✅ Limpieza ejecutada", "success");
-        cargarDatosLimpios();
-      } else {
-        const txt = await res.text();
-        mostrarMensaje(section, `❌ ${txt || res.statusText}`, "error");
-      }
-    } catch {
-      mostrarMensaje(section, "❌ Error de conexión", "error");
+      const res = await fetch(`${API_BASE}/api/pipeline/run`, { method: "POST" });
+      if (!res.ok) throw new Error(await res.text());
+      mostrarMensaje(sec, "✅ Pipeline OK", "success");
+      cargarTabla("/api/cleaned/", "tabla-etl", ["id","tipo","descripcion","monto","fecha","validado_por","tabla_destino"]);
+    } catch (e) {
+      mostrarMensaje(sec, `❌ ${e.message}`, "error");
     }
   });
 
-  // Cargas iniciales
-  cargarDatosLimpios();
-  cargarTemplatesRecurrentes();
+  // Delegación para editar/borrar
+  document.querySelector("main").addEventListener("click", handleTableClick);
+
+  // Carga inicial
+  cargarTodo();
 });
 
-// Cargar cleaned_data
-async function cargarDatosLimpios() {
-  try {
-    const res = await fetch(`${API_BASE}/api/cleaned/`);
-    const data = await res.json();
-    const tbody = document.getElementById("tabla-etl");
-    tbody.innerHTML = "";
-    data.forEach(r => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${r.id}</td>
-        <td>${r.tipo}</td>
-        <td>${r.descripcion}</td>
-        <td>${r.monto}</td>
-        <td>${r.fecha}</td>
-        <td>${r.validado_por}</td>
-        <td>${r.tabla_destino || ""}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("cleaned load:", e);
-  }
-}
 
-// Cargar plantillas recurrentes
-async function cargarTemplatesRecurrentes() {
-  try {
-    const res = await fetch(`${API_BASE}/api/facturas/recurrentes/template/`);
-    const data = await res.json();
-    const tbody = document.getElementById("tabla-recurrentes");
-    tbody.innerHTML = "";
-    data.forEach(t => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-        <td>${t.id}</td>
-        <td>${t.cliente}</td>
-        <td>${t.descripcion}</td>
-        <td>${t.monto}</td>
-        <td>${t.frecuencia}</td>
-        <td>${t.siguiente_generacion}</td>
-      `;
-      tbody.appendChild(tr);
-    });
-  } catch (e) {
-    console.error("recurrentes load:", e);
-  }
-}
+
+
+
