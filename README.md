@@ -143,7 +143,7 @@ pip install -r requirements.txt
 mysql -u root -pContaEntregable04 -e "CREATE DATABASE IF NOT EXISTS contabilidad CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # Crear tablas
-mysql -u root -pContaEntregable04 contabilidad < create_tables.sql
+mysql -u root -pContrasena contabilidad < create_tables.sql
 
 # Cargar datos de ejemplo (opcional)
 mysql -u root -pContaEntregable04 contabilidad < clean_and_dummy_data.sql
