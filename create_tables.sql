@@ -117,7 +117,7 @@ CREATE TABLE IF NOT EXISTS pagos_proveedor (
     CONSTRAINT fk_pago_proveedor_orden FOREIGN KEY (orden_compra_id) REFERENCES ordenes_compra(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- 5. Clientes y productos
+-- 5. Clientes, proveedores y productos
 CREATE TABLE IF NOT EXISTS clientes (
     id INT AUTO_INCREMENT PRIMARY KEY,
     nombre VARCHAR(150) NOT NULL,
@@ -125,6 +125,18 @@ CREATE TABLE IF NOT EXISTS clientes (
     correo VARCHAR(150),
     telefono VARCHAR(50),
     direccion TEXT,
+    creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS proveedores (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nombre VARCHAR(150) NOT NULL,
+    identificacion VARCHAR(50) UNIQUE,
+    correo VARCHAR(150),
+    telefono VARCHAR(50),
+    direccion TEXT,
+    contacto_nombre VARCHAR(150),
+    contacto_telefono VARCHAR(50),
     creado_en TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
