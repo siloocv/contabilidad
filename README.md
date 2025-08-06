@@ -140,13 +140,13 @@ pip install -r requirements.txt
 #### 4. Configurar MySQL
 ```bash
 # Crear base de datos
-mysql -u root -pContaEntregable04 -e "CREATE DATABASE IF NOT EXISTS contabilidad CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+mysql -u root -pContrasena -e "CREATE DATABASE IF NOT EXISTS contabilidad CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
 
 # Crear tablas
 mysql -u root -pContrasena contabilidad < create_tables.sql
 
 # Cargar datos de ejemplo (opcional)
-mysql -u root -pContaEntregable04 contabilidad < clean_and_dummy_data.sql
+mysql -u root -pContrasena contabilidad < clean_and_dummy_data.sql
 ```
 
 #### 5. Iniciar el servidor
