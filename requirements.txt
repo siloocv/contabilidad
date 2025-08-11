@@ -3,3 +3,4 @@ uvicorn[standard]
 sqlalchemy
 pymysql
 pydantic
+prefect>=3.0.0

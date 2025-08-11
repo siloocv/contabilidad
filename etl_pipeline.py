@@ -6,7 +6,7 @@ from decimal import Decimal
 import os
 
 # URL de conexión
-DATABASE_URL = "mysql+pymysql://sebas:YES@localhost:3306/contabilidad?charset=utf8mb4"
+DATABASE_URL = "mysql+pymysql://root:siloe461@localhost:3306/contabilidad?charset=utf8mb4"
 engine = create_engine(DATABASE_URL)
 
 # Directorios de respaldo y logs
