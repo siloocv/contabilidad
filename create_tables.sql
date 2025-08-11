@@ -1,11 +1,11 @@
 -- 1. Borrar y recrear la base limpia
-DROP DATABASE IF EXISTS contabilidad;
-CREATE DATABASE contabilidad CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-USE contabilidad;
+-- DROP DATABASE IF EXISTS contabilidad;
+-- CREATE DATABASE contabilidad CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+-- USE contabilidad;
 -- 2. Crear/asegurar usuario y permisos (local)
-CREATE USER IF NOT EXISTS 'sebas'@'localhost' IDENTIFIED BY 'YES';
-GRANT ALL PRIVILEGES ON contabilidad.* TO 'sebas'@'localhost';
-FLUSH PRIVILEGES;
+-- CREATE USER IF NOT EXISTS 'sebas'@'localhost' IDENTIFIED BY 'YES';
+-- GRANT ALL PRIVILEGES ON contabilidad.* TO 'sebas'@'localhost';
+-- FLUSH PRIVILEGES;
 
 -- 3. Usar la base
 USE contabilidad;
