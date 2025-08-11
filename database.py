@@ -2,8 +2,13 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
+<<<<<<< HEAD
 # Conexión usando el usuario sebas, DB contabilidad y charset utf8mb4
 DATABASE_URL = "mysql+pymysql://root:siloe461@localhost:3306/contabilidad?charset=utf8mb4"
+=======
+# Conexión usando el usuario root, DB contabilidad y charset utf8mb4
+DATABASE_URL = "mysql+pymysql://root:Contrasena@localhost:3306/contabilidad?charset=utf8mb4"
+>>>>>>> origin/dev-stff
 
 engine = create_engine(
     DATABASE_URL,
