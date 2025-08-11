@@ -4,6 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>💼 Sistema de Contabilidad Web</title>
+  <link rel="stylesheet" href="./dist/tailwind.css">
+  <link rel="stylesheet" href="./style.css">
 
   <!-- Favicon -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -83,8 +85,10 @@
   <label>Fecha:</label>
   <input type="date" name="fecha" required />
 
-  <button type="submit">Guardar factura</button>
-  <div class="status-container"></div>
+  <button class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+  Guardar factura
+  </button>
+
 </form>
 
 </section>
