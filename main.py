@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, field_validator, model_validator
 from datetime import date, datetime
 from decimal import Decimal
-from typing import Optional, Any, Literal
+from typing import Optional, Any, Literal, List
 import json
 
 import models
@@ -139,6 +139,23 @@ class FacturaItemIn(BaseModel):
     cantidad: int
     precio: float
 
+class FacturaLineaIn(BaseModel):
+    producto_id: int
+    cantidad: int
+    precio: float
+
+class FacturaVentaCreateIn(BaseModel):
+    cliente: str
+    descripcion: str
+    fecha: date
+    items: List[FacturaLineaIn]  # requerido para múltiples productos
+
+class FacturaCompraCreateIn(BaseModel):
+    proveedor: str
+    descripcion: str
+    fecha: date
+    items: List[FacturaLineaIn]
+
 # ------------------------------
 # Endpoints: RAW
 # ------------------------------
@@ -214,11 +231,39 @@ def crear_factura_venta(fv: FacturaVentaIn, db: Session = Depends(get_db)):
         "status": "pending_etl",
         "tipo": "factura_venta"
     }
+@app.post("/api/facturas/venta/con-items/", status_code=201)
+def crear_factura_venta_con_items(fv: FacturaVentaCreateIn, db: Session = Depends(get_db)):
+    payload_items = [i.model_dump() for i in fv.items]
+    raw_entry = models.RawData(
+        tipo="ingreso",
+        descripcion=f"{fv.cliente} - {fv.descripcion}",
+        monto=0,  # el ETL calculará total desde items
+        fecha=fv.fecha,
+        tabla_destino="facturas_venta",
+        metadata_json=json.dumps({"items": payload_items})
+    )
+    db.add(raw_entry)
+    db.commit()
+    db.refresh(raw_entry)
+    return {
+        "message": "Factura (con items) registrada en cola de procesamiento",
+        "raw_id": raw_entry.id,
+        "status": "pending_etl",
+        "tipo": "factura_venta"
+    }
 
 @app.get("/api/facturas/venta/")
 def listar_facturas_venta(db: Session = Depends(get_db)):
     fv = db.query(models.FacturaVenta).order_by(models.FacturaVenta.id.desc()).all()
     return [serialize_row(x) for x in fv]
+
+@app.get("/api/facturas/venta/{factura_id}/items")
+def listar_items_factura_venta(factura_id: int, db: Session = Depends(get_db)):
+    rows = db.query(models.FacturaItem)\
+        .filter(models.FacturaItem.factura_tipo=='venta',
+                models.FacturaItem.factura_venta_id==factura_id)\
+        .all()
+    return [serialize_row(x) for x in rows]
 
 @app.get("/api/facturas/venta/{id}/")
 def obtener_factura_venta(id: int, db: Session = Depends(get_db)):
@@ -273,10 +318,39 @@ def crear_factura_compra(fc: FacturaCompraIn, db: Session = Depends(get_db)):
         "tipo": "factura_compra"
     }
 
+@app.post("/api/facturas/compra/con-items/", status_code=201)
+def crear_factura_compra_con_items(fc: FacturaCompraCreateIn, db: Session = Depends(get_db)):
+    payload_items = [i.model_dump() for i in fc.items]
+    raw_entry = models.RawData(
+        tipo="gasto",
+        descripcion=f"{fc.proveedor} - {fc.descripcion}",
+        monto=0,  # total lo calcula el ETL
+        fecha=fc.fecha,
+        tabla_destino="facturas_compra",
+        metadata_json=json.dumps({"items": payload_items})
+    )
+    db.add(raw_entry)
+    db.commit()
+    db.refresh(raw_entry)
+    return {
+        "message": "Factura de compra (con items) registrada en cola de procesamiento",
+        "raw_id": raw_entry.id,
+        "status": "pending_etl",
+        "tipo": "factura_compra"
+    }
+
 @app.get("/api/facturas/compra/")
 def listar_facturas_compra(db: Session = Depends(get_db)):
     fc = db.query(models.FacturaCompra).order_by(models.FacturaCompra.id.desc()).all()
     return [serialize_row(x) for x in fc]
+
+@app.get("/api/facturas/compra/{factura_id}/items")
+def listar_items_factura_compra(factura_id: int, db: Session = Depends(get_db)):
+    rows = db.query(models.FacturaItem)\
+        .filter(models.FacturaItem.factura_tipo=='compra',
+                models.FacturaItem.factura_compra_id==factura_id)\
+        .all()
+    return [serialize_row(x) for x in rows]
 
 @app.get("/api/facturas/compra/{id}/")
 def obtener_factura_compra(id: int, db: Session = Depends(get_db)):

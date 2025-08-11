@@ -4,14 +4,14 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>💼 Sistema de Contabilidad Web</title>
-  
+
   <!-- Favicon -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
-  
+
   <!-- Para navegadores que no soporten SVG -->
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>💰</text></svg>">
-  
+
   <script>
     window.__API_BASE__ = "http://127.0.0.1:8000";
   </script>
@@ -56,43 +56,38 @@
       <section id="factura-venta" class="contenido-seccion">
         <h2>Registrar Factura de Venta</h2>
         <form id="form-venta">
-          <label>Cliente:</label>
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <select id="select-cliente-venta" name="cliente_select" style="flex: 1;">
-              <option value="">-- Seleccione cliente existente --</option>
-              <option value="nuevo">➕ Crear nuevo cliente</option>
-            </select>
-            <input type="text" name="cliente" placeholder="O escriba nombre del cliente" style="flex: 1;" />
-          </div>
-          
-          <label>Producto (opcional):</label>
-          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
-            <select id="select-producto-venta" name="producto_select" style="flex: 1;">
-              <option value="">-- Seleccione producto --</option>
-              <option value="nuevo">➕ Crear nuevo producto</option>
-            </select>
-            <input type="number" name="cantidad" placeholder="Cantidad" min="1" style="width: 100px;" />
-          </div>
-          
-          <label>Descripción:</label>
-          <input type="text" name="descripcion" required />
-          <label>Monto (₡):</label>
-          <input type="number" name="monto" required step="0.01" />
-          <label>Fecha:</label>
-          <input type="date" name="fecha" required />
-          <button type="submit">Guardar factura</button>
-          <div class="status-container"></div>
-        </form>
-        <h3>Listado Facturas de Venta</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-venta"></tbody>
-        </table>
-      </section>
+  <label>Cliente:</label>
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <select id="select-cliente-venta" name="cliente_select" style="flex: 1;">
+      <option value="">-- Seleccione cliente existente --</option>
+      <option value="nuevo">➕ Crear nuevo cliente</option>
+    </select>
+    <input type="text" name="cliente" placeholder="O escriba nombre del cliente" style="flex: 1;" />
+  </div>
+
+  <label>Descripción:</label>
+  <input type="text" name="descripcion" required />
+  <label>Producto (opcional):</label>
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <select id="select-producto-venta" name="producto_select" style="flex: 1;">
+      <option value="">-- Seleccione producto --</option>
+      <option value="nuevo">➕ Crear nuevo producto</option>
+    </select>
+    <input type="number" name="cantidad" placeholder="Cantidad" min="1" style="width: 100px;" />
+  </div>
+
+  <!-- Mantengo el campo monto pero lo dejo readonly (compat visual) -->
+  <label>Monto (₡):</label>
+  <input type="number" name="monto" step="0.01" readonly style="background:#f5f5f5;" />
+
+  <label>Fecha:</label>
+  <input type="date" name="fecha" required />
+
+  <button type="submit">Guardar factura</button>
+  <div class="status-container"></div>
+</form>
+
+</section>
 
       <!-- Factura de Compra -->
       <section id="factura-compra" class="contenido-seccion" style="display:none;">
@@ -106,7 +101,7 @@
             </select>
             <input type="text" name="proveedor" placeholder="O escriba nombre del proveedor" style="flex: 1;" />
           </div>
-          
+
           <label>Producto (opcional):</label>
           <div style="display: flex; gap: 10px; margin-bottom: 10px;">
             <select id="select-producto-compra" name="producto_select" style="flex: 1;">
@@ -115,7 +110,7 @@
             </select>
             <input type="number" name="cantidad" placeholder="Cantidad" min="1" style="width: 100px;" />
           </div>
-          
+
           <label>Descripción:</label>
           <input type="text" name="descripcion" required />
           <label>Monto (₡):</label>
@@ -325,7 +320,7 @@
         <h2>📊 Reportes Financieros</h2>
         <button id="btn-generar-reportes">Actualizar Reportes</button>
         <div class="status-container"></div>
-        
+
         <div id="resumen-financiero" style="margin-top: 20px;">
           <h3>Resumen Financiero</h3>
           <div id="resumen-content" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
@@ -335,7 +330,7 @@
 
         <div id="facturas-pendientes" style="margin-top: 30px;">
           <h3>Facturas Pendientes de Pago</h3>
-          
+
           <h4>Cuentas por Cobrar (Ventas)</h4>
           <table>
             <thead>
@@ -368,35 +363,35 @@
             <option value="venta">Factura de Venta</option>
             <option value="compra">Factura de Compra</option>
           </select>
-          
+
           <label id="label-factura-venta">Factura de Venta:</label>
           <select name="factura_venta_id" id="select-factura-venta-item" style="width: 100%;">
             <option value="">-- Seleccione factura de venta --</option>
           </select>
-          
+
           <label id="label-factura-compra">Factura de Compra:</label>
           <select name="factura_compra_id" id="select-factura-compra-item" style="width: 100%;">
             <option value="">-- Seleccione factura de compra --</option>
           </select>
-          
+
           <label>Producto:</label>
           <select name="producto_id" id="select-producto-item" required style="width: 100%;">
             <option value="">-- Seleccione producto --</option>
           </select>
-          
+
           <label>Cantidad:</label>
           <input type="number" name="cantidad" id="cantidad-item" required min="1" value="1" />
-          
+
           <label>Precio Unitario:</label>
           <input type="number" name="precio" id="precio-item" required step="0.01" />
-          
+
           <label>Subtotal:</label>
           <input type="number" id="subtotal-item" readonly style="background: #f0f0f0;" />
-          
+
           <button type="submit">Agregar Producto</button>
           <div class="status-container"></div>
         </form>
-        
+
         <h3>Items de Facturas</h3>
         <table>
           <thead>
@@ -411,6 +406,12 @@
   </div>
 
   <script src="main.js"></script>
+  <script>
+  // fallback: mostrar todo por si algún JS falla antes de enganchar el sidebar
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.contenido-seccion').forEach(s => s.style.display = 'block');
+  });
+</script>
 </body>
 </html>
 

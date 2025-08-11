@@ -9,9 +9,14 @@ const API_BASE = getApiBase();
 
 // Mostrar sección del sidebar
 function mostrarSeccion(id) {
+  const target = document.getElementById(id);
+  if (!target) {
+    // si el id no existe, no ocultamos nada; mostramos todo para no “perder” formularios
+    document.querySelectorAll(".contenido-seccion").forEach(s => s.style.display = "block");
+    return;
+  }
   document.querySelectorAll(".contenido-seccion").forEach(s => s.style.display = "none");
-  const el = document.getElementById(id);
-  if (el) el.style.display = "block";
+  target.style.display = "block";
   document.querySelectorAll("aside li").forEach(li => {
     li.classList.toggle("active", li.dataset.target === id);
   });
@@ -83,16 +88,16 @@ async function submitForm(form, endpoint, method="POST", extra={}) {
       body: JSON.stringify(payload),
     });
     if (!res.ok) throw new Error((await res.json()).detail || res.statusText);
-    
+
     const result = await res.json();
-    
+
     // Verificar si es una respuesta del nuevo sistema ETL
     if (result.status === "pending_etl") {
       mostrarMensaje(form, `✅ ${result.message}. Raw ID: ${result.raw_id}. Ejecute el pipeline ETL para procesar.`, "success");
     } else {
       mostrarMensaje(form, "✅ Éxito", "success");
     }
-    
+
     form.reset();
     cargarTodo();
   } catch (e) {
@@ -164,10 +169,10 @@ async function handleTableClick(e) {
       for (const [k,v] of Object.entries(data)) {
         if (form[k]) form[k].value = v;
       }
-      
+
       // Guardar el handler original
       const originalHandler = form._originalHandler;
-      
+
       // Cambiar submit para PUT
       form.onsubmit = async e2 => {
         e2.preventDefault();
@@ -189,12 +194,12 @@ async function cargarClientesDropdown() {
     const response = await fetch(`${API_BASE}/api/clientes/`);
     const clientes = await response.json();
     const select = document.getElementById("select-cliente-venta");
-    
+
     // Limpiar opciones existentes (excepto las primeras dos)
     while (select.options.length > 2) {
       select.remove(2);
     }
-    
+
     // Agregar clientes
     clientes.forEach(cliente => {
       const option = document.createElement("option");
@@ -212,18 +217,18 @@ async function cargarProveedoresDropdowns() {
   try {
     const response = await fetch(`${API_BASE}/api/proveedores/`);
     const proveedores = await response.json();
-    
+
     // Cargar en dropdown de compra y orden
     const selectCompra = document.getElementById("select-proveedor-compra");
     const selectOrden = document.getElementById("select-proveedor-orden");
-    
+
     [selectCompra, selectOrden].forEach(select => {
       if (!select) return;
       // Limpiar opciones existentes (excepto las primeras dos)
       while (select.options.length > 2) {
         select.remove(2);
       }
-      
+
       // Agregar proveedores
       proveedores.forEach(proveedor => {
         const option = document.createElement("option");
@@ -242,17 +247,17 @@ async function cargarProductosDropdowns() {
   try {
     const response = await fetch(`${API_BASE}/api/productos/`);
     const productos = await response.json();
-    
+
     // Cargar en dropdown de venta
     const selectVenta = document.getElementById("select-producto-venta");
     const selectCompra = document.getElementById("select-producto-compra");
-    
-    [selectVenta, selectCompra].forEach(select => {
+
+    [selectVenta, selectCompra].filter(Boolean).forEach(select => {
       // Limpiar opciones existentes (excepto las primeras dos)
       while (select.options.length > 2) {
         select.remove(2);
       }
-      
+
       // Agregar productos
       productos.forEach(producto => {
         const option = document.createElement("option");
@@ -268,34 +273,146 @@ async function cargarProductosDropdowns() {
   }
 }
 
+/* ============================================================
+   UI mínima para manejar ítems (reutiliza tus propios campos)
+   ============================================================ */
+function setupItemsUI({ form, selectProductoId, cantidadName, totalInputName, itemsStateKey }) {
+  // Estado por formulario
+  form[itemsStateKey] = [];
+
+  // Contenedor visual
+  let box = form.querySelector(".items-box");
+  if (!box) {
+    box = document.createElement("div");
+    box.className = "items-box";
+    box.style.margin = "10px 0";
+    box.innerHTML = `
+      <div style="display:flex; gap:8px; align-items:center; margin:6px 0;">
+        <button type="button" class="btn-add-item">➕ Agregar ítem</button>
+        <span style="opacity:.7">Use el selector de producto y la cantidad del formulario, luego pulse "Agregar ítem".</span>
+      </div>
+      <table style="width:100%; border-collapse: collapse; margin-top:6px;">
+        <thead>
+          <tr>
+            <th style="text-align:left">Producto</th>
+            <th style="text-align:right">Cantidad</th>
+            <th style="text-align:right">Precio</th>
+            <th style="text-align:right">Subtotal</th>
+            <th style="text-align:center">Acciones</th>
+          </tr>
+        </thead>
+        <tbody class="items-tbody"></tbody>
+        <tfoot>
+          <tr>
+            <td colspan="3" style="text-align:right; font-weight:bold;">Total</td>
+            <td class="items-total" style="text-align:right; font-weight:bold;">0.00</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    `;
+    form.appendChild(box);
+  }
+
+  const btnAdd = box.querySelector(".btn-add-item");
+  const tbody  = box.querySelector(".items-tbody");
+  const totalCell = box.querySelector(".items-total");
+
+  function getSelectedProduct(select) {
+    if (!select || !select.value || select.value === "nuevo") return null;
+    const opt = select.options[select.selectedIndex];
+    const precio = parseFloat(opt?.dataset?.precio || "0");
+    return { id: Number(select.value), nombre: opt?.dataset?.nombre || opt.textContent, precio };
+  }
+
+  function recalc() {
+    let total = 0;
+    form[itemsStateKey].forEach(it => total += it.cantidad * it.precio);
+    totalCell.textContent = total.toFixed(2);
+    if (form[totalInputName]) form[totalInputName].value = total.toFixed(2);
+  }
+
+  function render() {
+    tbody.innerHTML = "";
+    form[itemsStateKey].forEach((it, idx) => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${it.nombre}</td>
+        <td style="text-align:right">${it.cantidad}</td>
+        <td style="text-align:right">${it.precio.toFixed(2)}</td>
+        <td style="text-align:right">${(it.cantidad * it.precio).toFixed(2)}</td>
+        <td style="text-align:center">
+          <button type="button" data-idx="${idx}" class="btn-del-item">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+    recalc();
+  }
+
+  btnAdd.addEventListener("click", () => {
+    const select = document.getElementById(selectProductoId);
+    const p = getSelectedProduct(select);
+    const cantInput = form.querySelector(`[name="${cantidadName}"]`);
+    const cantidad = parseFloat(cantInput?.value || "1");
+    if (!p) { mostrarMensaje(form, "Seleccione un producto válido", "error"); return; }
+    if (isNaN(cantidad) || cantidad <= 0) { mostrarMensaje(form, "Cantidad debe ser > 0", "error"); return; }
+    form[itemsStateKey].push({ producto_id: p.id, nombre: p.nombre, cantidad, precio: p.precio });
+    render();
+  });
+
+  tbody.addEventListener("click", (e) => {
+    if (e.target.matches(".btn-del-item")) {
+      const idx = Number(e.target.dataset.idx);
+      form[itemsStateKey].splice(idx, 1);
+      render();
+    }
+  });
+
+  return {
+    getItems: () => form[itemsStateKey].map(({ producto_id, cantidad, precio }) => ({ producto_id, cantidad, precio })),
+    clear: () => { form[itemsStateKey] = []; render(); }
+  };
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   // Cargar dropdowns al inicio
   cargarClientesDropdown();
   cargarProveedoresDropdowns();
   cargarProductosDropdowns();
-  
-  // Sidebar
-  document.querySelectorAll("aside li").forEach(li => {
-    li.addEventListener("click", () => mostrarSeccion(li.dataset.target));
-  });
-  mostrarSeccion("factura-venta");
 
-  // Vincular formularios y guardar referencias
+  // Sidebar
+  // Sidebar robusto con delegación
+const asideNav = document.querySelector('aside nav');
+if (asideNav) {
+  asideNav.addEventListener('click', (e) => {
+    const li = e.target.closest('li[data-target]');
+    if (!li) return;
+    // Antes de ocultar/mostrar, asegúrate de que el resto del JS no rompa
+    try { mostrarSeccion(li.dataset.target); }
+    catch {
+      // fallback: si algo truena, muestra todas
+      document.querySelectorAll('.contenido-seccion').forEach(s => s.style.display = 'block');
+    }
+  });
+}
+// Muestra por defecto factura-venta (si existe); si no, muestra todo
+try { mostrarSeccion('factura-venta'); }
+catch { document.querySelectorAll('.contenido-seccion').forEach(s => s.style.display = 'block'); }
+
+  /* ===============================
+     Factura de Venta (con ítems)
+     =============================== */
   const formVenta = document.getElementById("form-venta");
   if (formVenta) {
-    const handler = e => {
-      e.preventDefault();
-      // Si hay un cliente seleccionado del dropdown, usar ese
-      const selectCliente = document.getElementById("select-cliente-venta");
-      const inputCliente = formVenta.querySelector('[name="cliente"]');
-      if (selectCliente.value && selectCliente.value !== "nuevo") {
-        inputCliente.value = selectCliente.value;
-      }
-      submitForm(e.target, "/api/facturas/venta/");
-    };
-    formVenta.addEventListener("submit", handler);
-    formVenta._originalHandler = handler;
-    
+    const ventaItems = setupItemsUI({
+      form: formVenta,
+      selectProductoId: "select-producto-venta",
+      cantidadName: "cantidad",
+      totalInputName: "monto",
+      itemsStateKey: "__ventaItems__"
+    });
+
     // Manejar selección de cliente
     const selectCliente = document.getElementById("select-cliente-venta");
     selectCliente.addEventListener("change", () => {
@@ -306,53 +423,65 @@ document.addEventListener("DOMContentLoaded", () => {
         formVenta.querySelector('[name="cliente"]').value = selectCliente.value;
       }
     });
-    
-    // Manejar selección de producto
-    const selectProducto = document.getElementById("select-producto-venta");
-    selectProducto.addEventListener("change", () => {
-      if (selectProducto.value === "nuevo") {
-        mostrarSeccion("productos");
-        selectProducto.value = "";
-      } else if (selectProducto.value) {
-        // Calcular precio basado en cantidad
-        const option = selectProducto.options[selectProducto.selectedIndex];
-        const precio = parseFloat(option.dataset.precio);
-        const cantidad = formVenta.querySelector('[name="cantidad"]').value || 1;
-        const monto = precio * cantidad;
-        formVenta.querySelector('[name="monto"]').value = monto;
-        formVenta.querySelector('[name="descripcion"]').value = `${option.dataset.nombre} x${cantidad}`;
+
+    // Submit al endpoint NUEVO con ítems
+    const handler = async e => {
+      e.preventDefault();
+      if (selectCliente.value && selectCliente.value !== "nuevo") {
+        formVenta.querySelector('[name="cliente"]').value = selectCliente.value;
       }
-    });
-    
-    // Actualizar monto cuando cambie la cantidad
-    formVenta.querySelector('[name="cantidad"]')?.addEventListener("input", (e) => {
-      const selectProducto = document.getElementById("select-producto-venta");
-      if (selectProducto.value && selectProducto.value !== "nuevo") {
-        const option = selectProducto.options[selectProducto.selectedIndex];
-        const precio = parseFloat(option.dataset.precio);
-        const cantidad = e.target.value || 1;
-        const monto = precio * cantidad;
-        formVenta.querySelector('[name="monto"]').value = monto;
-        formVenta.querySelector('[name="descripcion"]').value = `${option.dataset.nombre} x${cantidad}`;
+      const items = ventaItems.getItems();
+      if (!items.length) {
+        mostrarMensaje(formVenta, "Agregue al menos un ítem antes de guardar.", "error");
+        return;
       }
-    });
+      const payload = {
+        cliente: formVenta.cliente.value.trim(),
+        descripcion: formVenta.descripcion.value.trim(),
+        fecha: formVenta.fecha.value,
+        items
+      };
+      try {
+        formVenta.querySelector("button").disabled = true;
+        mostrarMensaje(formVenta, "Enviando...", "loading");
+        const res = await fetch(`${API_BASE}/api/facturas/venta/con-items/`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.detail || res.statusText);
+        mostrarMensaje(formVenta, `✅ ${result.message}. Raw ID: ${result.raw_id}.`, "success");
+
+        // opcional: ejecutar ETL
+        try { await fetch(`${API_BASE}/api/pipeline/run`, { method: "POST" }); } catch {}
+
+        formVenta.reset();
+        ventaItems.clear();
+        cargarTodo();
+      } catch (err) {
+        mostrarMensaje(formVenta, `❌ ${err.message}`, "error");
+      } finally {
+        formVenta.querySelector("button").disabled = false;
+      }
+    };
+    formVenta.addEventListener("submit", handler);
+    formVenta._originalHandler = handler;
   }
-  
+
+  /* ===============================
+     Factura de Compra (con ítems)
+     =============================== */
   const formCompra = document.getElementById("form-compra");
   if (formCompra) {
-    const handler = e => {
-      e.preventDefault();
-      // Si hay un proveedor seleccionado del dropdown, usar ese
-      const selectProveedor = document.getElementById("select-proveedor-compra");
-      const inputProveedor = formCompra.querySelector('[name="proveedor"]');
-      if (selectProveedor.value && selectProveedor.value !== "nuevo") {
-        inputProveedor.value = selectProveedor.value;
-      }
-      submitForm(e.target, "/api/facturas/compra/");
-    };
-    formCompra.addEventListener("submit", handler);
-    formCompra._originalHandler = handler;
-    
+    const compraItems = setupItemsUI({
+      form: formCompra,
+      selectProductoId: "select-producto-compra",
+      cantidadName: "cantidad",
+      totalInputName: "monto",
+      itemsStateKey: "__compraItems__"
+    });
+
     // Manejar selección de proveedor
     const selectProveedor = document.getElementById("select-proveedor-compra");
     selectProveedor?.addEventListener("change", () => {
@@ -363,8 +492,52 @@ document.addEventListener("DOMContentLoaded", () => {
         formCompra.querySelector('[name="proveedor"]').value = selectProveedor.value;
       }
     });
+
+    // Submit al endpoint NUEVO con ítems
+    const handler = async e => {
+      e.preventDefault();
+      if (selectProveedor && selectProveedor.value && selectProveedor.value !== "nuevo") {
+        formCompra.querySelector('[name="proveedor"]').value = selectProveedor.value;
+      }
+      const items = compraItems.getItems();
+      if (!items.length) {
+        mostrarMensaje(formCompra, "Agregue al menos un ítem antes de guardar.", "error");
+        return;
+      }
+      const payload = {
+        proveedor: formCompra.proveedor.value.trim(),
+        descripcion: formCompra.descripcion.value.trim(),
+        fecha: formCompra.fecha.value,
+        items
+      };
+      try {
+        formCompra.querySelector("button").disabled = true;
+        mostrarMensaje(formCompra, "Enviando...", "loading");
+        const res = await fetch(`${API_BASE}/api/facturas/compra/con-items/`, {
+          method: "POST",
+          headers: {"Content-Type":"application/json"},
+          body: JSON.stringify(payload)
+        });
+        const result = await res.json();
+        if (!res.ok) throw new Error(result.detail || res.statusText);
+        mostrarMensaje(formCompra, `✅ ${result.message}. Raw ID: ${result.raw_id}.`, "success");
+
+        try { await fetch(`${API_BASE}/api/pipeline/run`, { method: "POST" }); } catch {}
+
+        formCompra.reset();
+        compraItems.clear();
+        cargarTodo();
+      } catch (err) {
+        mostrarMensaje(formCompra, `❌ ${err.message}`, "error");
+      } finally {
+        formCompra.querySelector("button").disabled = false;
+      }
+    };
+    formCompra.addEventListener("submit", handler);
+    formCompra._originalHandler = handler;
   }
-  
+
+  // Pagos Recibidos
   const formPagoRecibido = document.getElementById("form-pago-recibido");
   if (formPagoRecibido) {
     const handler = e => {
@@ -374,12 +547,12 @@ document.addEventListener("DOMContentLoaded", () => {
     formPagoRecibido.addEventListener("submit", handler);
     formPagoRecibido._originalHandler = handler;
   }
-  
+
+  // Orden de Compra
   const formOrdenCompra = document.getElementById("form-orden-compra");
   if (formOrdenCompra) {
     const handler = e => {
       e.preventDefault();
-      // Si hay un proveedor seleccionado del dropdown, usar ese
       const selectProveedor = document.getElementById("select-proveedor-orden");
       const inputProveedor = formOrdenCompra.querySelector('[name="proveedor"]');
       if (selectProveedor.value && selectProveedor.value !== "nuevo") {
@@ -389,8 +562,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     formOrdenCompra.addEventListener("submit", handler);
     formOrdenCompra._originalHandler = handler;
-    
-    // Manejar selección de proveedor
+
     const selectProveedor = document.getElementById("select-proveedor-orden");
     selectProveedor?.addEventListener("change", () => {
       if (selectProveedor.value === "nuevo") {
@@ -401,7 +573,8 @@ document.addEventListener("DOMContentLoaded", () => {
       }
     });
   }
-  
+
+  // Pago Proveedor
   const formPagoProveedor = document.getElementById("form-pago-proveedor");
   if (formPagoProveedor) {
     const handler = e => {
@@ -411,7 +584,8 @@ document.addEventListener("DOMContentLoaded", () => {
     formPagoProveedor.addEventListener("submit", handler);
     formPagoProveedor._originalHandler = handler;
   }
-  
+
+  // Clientes
   const formClientes = document.getElementById("form-clientes");
   if (formClientes) {
     const handler = e => {
@@ -421,7 +595,8 @@ document.addEventListener("DOMContentLoaded", () => {
     formClientes.addEventListener("submit", handler);
     formClientes._originalHandler = handler;
   }
-  
+
+  // Proveedores
   const formProveedores = document.getElementById("form-proveedores");
   if (formProveedores) {
     const handler = e => {
@@ -431,7 +606,8 @@ document.addEventListener("DOMContentLoaded", () => {
     formProveedores.addEventListener("submit", handler);
     formProveedores._originalHandler = handler;
   }
-  
+
+  // Productos
   const formProductos = document.getElementById("form-productos");
   if (formProductos) {
     const handler = e => {
@@ -441,8 +617,8 @@ document.addEventListener("DOMContentLoaded", () => {
     formProductos.addEventListener("submit", handler);
     formProductos._originalHandler = handler;
   }
-  
-  // Formulario para Items de Factura
+
+  // Formulario para Items de Factura (sección separada existente)
   const formFacturaItem = document.getElementById("form-factura-item");
   if (formFacturaItem) {
     const handler = e => {
@@ -451,8 +627,7 @@ document.addEventListener("DOMContentLoaded", () => {
     };
     formFacturaItem.addEventListener("submit", handler);
     formFacturaItem._originalHandler = handler;
-    
-    // Cargar facturas y productos en dropdowns
+
     const cargarFacturasDropdowns = async () => {
       try {
         // Cargar facturas de venta
@@ -466,7 +641,7 @@ document.addEventListener("DOMContentLoaded", () => {
           option.textContent = `#${f.id} - ${f.cliente} - ₡${f.monto}`;
           selectVenta.appendChild(option);
         });
-        
+
         // Cargar facturas de compra
         const resCompra = await fetch(`${API_BASE}/api/facturas/compra/`);
         const facturasCompra = await resCompra.json();
@@ -478,7 +653,7 @@ document.addEventListener("DOMContentLoaded", () => {
           option.textContent = `#${f.id} - ${f.proveedor} - ₡${f.monto}`;
           selectCompra.appendChild(option);
         });
-        
+
         // Cargar productos
         const resProductos = await fetch(`${API_BASE}/api/productos/`);
         const productos = await resProductos.json();
@@ -495,16 +670,15 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("Error cargando dropdowns:", error);
       }
     };
-    
+
     cargarFacturasDropdowns();
-    
-    // Manejar cambio en tipo de factura
+
     const tipoSelect = document.getElementById("select-tipo-factura-item");
     const selectVenta = document.getElementById("select-factura-venta-item");
     const selectCompra = document.getElementById("select-factura-compra-item");
     const labelVenta = document.getElementById("label-factura-venta");
     const labelCompra = document.getElementById("label-factura-compra");
-    
+
     tipoSelect?.addEventListener("change", () => {
       if (tipoSelect.value === "venta") {
         selectVenta.style.display = "block";
@@ -531,19 +705,18 @@ document.addEventListener("DOMContentLoaded", () => {
         selectCompra.required = false;
       }
     });
-    
-    // Auto-calcular precio cuando se seleccione producto
+
     const selectProducto = document.getElementById("select-producto-item");
     const precioInput = document.getElementById("precio-item");
     const cantidadInput = document.getElementById("cantidad-item");
     const subtotalInput = document.getElementById("subtotal-item");
-    
+
     const calcularSubtotal = () => {
       const precio = parseFloat(precioInput.value) || 0;
       const cantidad = parseInt(cantidadInput.value) || 0;
       subtotalInput.value = (precio * cantidad).toFixed(2);
     };
-    
+
     selectProducto?.addEventListener("change", () => {
       if (selectProducto.value) {
         const option = selectProducto.options[selectProducto.selectedIndex];
@@ -551,11 +724,10 @@ document.addEventListener("DOMContentLoaded", () => {
         calcularSubtotal();
       }
     });
-    
+
     cantidadInput?.addEventListener("input", calcularSubtotal);
     precioInput?.addEventListener("input", calcularSubtotal);
-    
-    // Inicializar visibilidad
+
     tipoSelect.dispatchEvent(new Event("change"));
   }
 
@@ -582,12 +754,12 @@ document.addEventListener("DOMContentLoaded", () => {
       const resResumen = await fetch(`${API_BASE}/api/reportes/resumen/`);
       if (!resResumen.ok) throw new Error(await resResumen.text());
       const resumen = await resResumen.json();
-      
+
       // Cargar facturas pendientes
       const resPendientes = await fetch(`${API_BASE}/api/reportes/facturas-pendientes/`);
       if (!resPendientes.ok) throw new Error(await resPendientes.text());
       const pendientes = await resPendientes.json();
-      
+
       // Actualizar resumen financiero
       const resumenContent = document.getElementById("resumen-content");
       resumenContent.innerHTML = `
@@ -620,8 +792,8 @@ document.addEventListener("DOMContentLoaded", () => {
           <p style="font-size: 32px; font-weight: bold;">₡${resumen.balance.toFixed(2)}</p>
         </div>
       `;
-      
-      // Actualizar tabla ventas pendientes
+
+      // Ventas pendientes
       const tbodyVentas = document.getElementById("tabla-ventas-pendientes");
       tbodyVentas.innerHTML = "";
       pendientes.facturas_venta_pendientes.forEach(f => {
@@ -636,8 +808,8 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         tbodyVentas.append(tr);
       });
-      
-      // Actualizar tabla compras pendientes
+
+      // Compras pendientes
       const tbodyCompras = document.getElementById("tabla-compras-pendientes");
       tbodyCompras.innerHTML = "";
       pendientes.facturas_compra_pendientes.forEach(f => {
@@ -652,7 +824,7 @@ document.addEventListener("DOMContentLoaded", () => {
         `;
         tbodyCompras.append(tr);
       });
-      
+
       mostrarMensaje(sec, "✅ Reportes actualizados", "success");
     } catch (e) {
       mostrarMensaje(sec, `❌ ${e.message}`, "error");
@@ -665,8 +837,3 @@ document.addEventListener("DOMContentLoaded", () => {
   // Carga inicial
   cargarTodo();
 });
-
-
-
-
-

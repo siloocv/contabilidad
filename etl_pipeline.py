@@ -6,7 +6,7 @@ from decimal import Decimal
 import os
 
 # URL de conexión
-DATABASE_URL = "mysql+pymysql://root:Contrasena4@localhost:3306/contabilidad?charset=utf8mb4"
+DATABASE_URL = "mysql+pymysql://root:siloe461@localhost:3306/contabilidad?charset=utf8mb4"
 engine = create_engine(DATABASE_URL)
 
 # Directorios de respaldo y logs
@@ -65,6 +65,7 @@ def run_etl():
                 "creado_en": creado_en,
                 "validado_por": "etl_pipeline",
                 "tabla_destino": VALID_TYPES[tipo],
+                "metadata_json": row_dict.get("metadata_json"),
             }
             cleaned.append(cleaned_item)
 
@@ -106,32 +107,113 @@ def run_etl():
                     text("SELECT id FROM facturas_venta WHERE raw_id = :rid"), {"rid": raw_id}
                 ).fetchone()
                 if not exists:
+                    # Leer items desde metadata_json (si vienen)
+                    items = []
+                    try:
+                        meta = item.get("metadata_json")
+                        if meta:
+                            meta_obj = json.loads(meta)
+                            items = meta_obj.get("items", [])
+                    except Exception:
+                        items = []
+
+                    # Calcular total (si no hay items, usar monto legacy)
+                    if items:
+                        total = sum(
+                            Decimal(str(i.get("cantidad", 0))) * Decimal(str(i.get("precio", 0))) for i in items)
+                    else:
+                        total = Decimal(str(monto))
+
+                    # Insertar factura
                     conn.execute(text("""
                         INSERT INTO facturas_venta (cliente, descripcion, monto, fecha, raw_id)
                         VALUES (:cliente, :descripcion, :monto, :fecha, :rid)
                     """), {
                         "cliente": nombre,
                         "descripcion": desc,
-                        "monto": monto,
+                        "monto": float(total),
                         "fecha": fecha.date() if hasattr(fecha, "date") else fecha,
                         "rid": raw_id
                     })
+                    factura_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+                    # Insertar items
+                    if items:
+                        for it in items:
+                            conn.execute(text("""
+                                INSERT INTO factura_items (factura_tipo, factura_venta_id, producto_id, cantidad, precio)
+                                VALUES ('venta', :fid, :pid, :cant, :precio)
+                            """), {
+                                "fid": factura_id,
+                                "pid": int(it["producto_id"]),
+                                "cant": Decimal(str(it["cantidad"])),
+                                "precio": Decimal(str(it["precio"]))
+                            })
+                    else:
+                        # Compatibilidad: 1 ítem único con el monto original
+                        conn.execute(text("""
+                            INSERT INTO factura_items (factura_tipo, factura_venta_id, producto_id, cantidad, precio)
+                            VALUES ('venta', :fid, :pid, :cant, :precio)
+                        """), {
+                            "fid": factura_id,
+                            "pid": 1,  # Asegúrate de tener un producto genérico con id=1
+                            "cant": Decimal("1"),
+                            "precio": Decimal(str(monto))
+                        })
 
             elif tipo == "gasto":
                 exists = conn.execute(
                     text("SELECT id FROM facturas_compra WHERE raw_id = :rid"), {"rid": raw_id}
                 ).fetchone()
                 if not exists:
+                    items = []
+                    try:
+                        meta = item.get("metadata_json")
+                        if meta:
+                            meta_obj = json.loads(meta)
+                            items = meta_obj.get("items", [])
+                    except Exception:
+                        items = []
+
+                    if items:
+                        total = sum(
+                            Decimal(str(i.get("cantidad", 0))) * Decimal(str(i.get("precio", 0))) for i in items)
+                    else:
+                        total = Decimal(str(monto))
+
                     conn.execute(text("""
                         INSERT INTO facturas_compra (proveedor, descripcion, monto, fecha, raw_id)
                         VALUES (:proveedor, :descripcion, :monto, :fecha, :rid)
                     """), {
                         "proveedor": nombre,
                         "descripcion": desc,
-                        "monto": monto,
+                        "monto": float(total),
                         "fecha": fecha.date() if hasattr(fecha, "date") else fecha,
                         "rid": raw_id
                     })
+                    factura_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+                    if items:
+                        for it in items:
+                            conn.execute(text("""
+                                INSERT INTO factura_items (factura_tipo, factura_compra_id, producto_id, cantidad, precio)
+                                VALUES ('compra', :fid, :pid, :cant, :precio)
+                            """), {
+                                "fid": factura_id,
+                                "pid": int(it["producto_id"]),
+                                "cant": Decimal(str(it["cantidad"])),
+                                "precio": Decimal(str(it["precio"]))
+                            })
+                    else:
+                        conn.execute(text("""
+                            INSERT INTO factura_items (factura_tipo, factura_compra_id, producto_id, cantidad, precio)
+                            VALUES ('compra', :fid, :pid, :cant, :precio)
+                        """), {
+                            "fid": factura_id,
+                            "pid": 1,  # producto genérico
+                            "cant": Decimal("1"),
+                            "precio": Decimal(str(monto))
+                        })
 
             elif tipo == "orden_compra":
                 exists = conn.execute(
