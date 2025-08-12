@@ -63,7 +63,89 @@ Se mantiene la funcionalidad original del ETL:
     logs/*.json
 
 ## **Facturas con múltiples productos**
-(Pendiente de implementación)
 
-## **Integración de Tailwind + gráficos**
-(Pendiente de implementación)
+
+## **Integración de Tailwind + dashboards**
+
+Este proyecto ahora incluye integración con **TailwindCSS** para los estilos de la interfaz.  
+Sigue estas instrucciones para levantar el entorno correctamente.
+
+---
+
+## 📦 Requisitos previos
+
+- **Node.js** (v18 o superior)
+- **npm** o **yarn**
+- Tener el backend corriendo (para que las API funcionen)
+
+---
+
+## 🚀 Instalación
+
+1. Clonar el repositorio y entrar en la carpeta del frontend:
+   ```bash
+   git clone https://github.com/siloocv/contabilidad.git
+   cd frontend
+   ```
+
+2. Instalar dependencias (incluye TailwindCSS y PostCSS):
+   ```bash
+   npm install
+   ```
+
+   Si es la primera vez que instalas Tailwind en tu máquina o hay problemas, puedes reinstalar manualmente:
+   ```bash
+   npm install -D tailwindcss postcss autoprefixer
+   npx tailwindcss init
+   ```
+
+---
+
+## 🛠️ Compilar TailwindCSS
+
+Este proyecto usa Tailwind con la configuración en `src/tailwind.css`.  
+Para compilar el CSS y ver los cambios en vivo:
+
+```bash
+npx tailwindcss -i ./src/tailwind.css -o ./dist/tailwind.css --watch
+```
+
+⚠ **Nota:** Deja este comando corriendo en una terminal mientras trabajas en el frontend para que Tailwind regenere el CSS al hacer cambios.
+
+---
+
+## ▶ Ejecutar el Frontend
+
+Este frontend es HTML/JS puro, así que puedes servirlo con una extensión de servidor local o con Python, por ejemplo:
+
+```bash
+# Opción 1: Servidor con Python
+python3 -m http.server 5500
+
+# Opción 2: Extensión de VSCode "Live Server"
+```
+
+Luego abre en el navegador:
+```
+http://localhost:5500/index.html
+```
+
+---
+
+## 📁 Estructura relevante
+
+```
+frontend/
+│── dist/               # CSS generado por Tailwind
+│── src/                # Archivos fuente (tailwind.css)
+│── main.js             # Lógica JS de la aplicación
+│── index.html          # Página principal
+```
+
+---
+
+## 👩‍💻 Consejos para desarrollo
+
+- Edita estilos en `src/tailwind.css`, **no** en `dist/tailwind.css`.
+- No borres el archivo generado `dist/tailwind.css`, es necesario para que el proyecto funcione.
+- Usa clases de Tailwind directamente en el HTML para nuevos estilos.

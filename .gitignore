@@ -200,4 +200,12 @@ marimo/_lsp/
 __marimo__/
 
 # Streamlit
-.streamlit/secrets.toml
+.streamlit/secrets.tomlfrontend/vendor/
+**/.DS_Store
+
+# ignores locales
+backups/
+logs/
+.DS_Store
+node_modules/
+dist/
