@@ -16,17 +16,33 @@
 
 body {
   font-family: 'Segoe UI', system-ui, sans-serif;
-  background: var(--azul-fondo);
+  /* Deja que el gradiente de Tailwind en <body> sea visible */
+  background: transparent;
   color: var(--gris-texto);
   min-height: 100vh;
 }
 
 header {
-  background: var(--azul-principal);
-  color: white;
-  padding: 1rem 2rem;
-  text-align: center;
-  font-size: 1.5rem;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  padding: 0 1rem !important;
+}
+
+header h1 {
+  background: transparent !important;
+  color: #0f172a !important;        /* slate-900 */
+  font-weight: 600 !important;
+  font-size: 1.25rem !important;     /* ~text-xl */
+  margin: 1rem 0 !important;
+  padding: 0 !important;
+}
+
+main, aside {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: saturate(140%) blur(4px);
+  border-radius: 12px;
+  padding: 0.5rem;
 }
 
 .container {
@@ -109,21 +125,7 @@ form input {
   margin-top: 2px;
 }
 
-form button {
-  margin-top: 1rem;
-  background: var(--azul-principal);
-  color: white;
-  border: none;
-  padding: .9rem 1.3rem;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1rem;
-}
-
-form button:hover {
-  background: #357dc3;
-}
-
+/* Mensajes de estado */
 .status-container {
   margin-top: .6rem;
 }
@@ -189,4 +191,12 @@ th {
   }
 }
 
-
+/* ===== Neutralizador extra contra estilos viejos del header ===== */
+body > header,
+header,
+header *,
+.container > header {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}

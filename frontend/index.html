@@ -6,6 +6,7 @@
   <title>💼 Sistema de Contabilidad Web</title>
   <link rel="stylesheet" href="./dist/tailwind.css">
   <link rel="stylesheet" href="./style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
 
   <!-- Favicon -->
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
@@ -20,13 +21,24 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>💰 Sistema de Contabilidad Web</h1>
-  </header>
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-indigo-50">
+<header class="!bg-transparent !border-0 !shadow-none !px-4 flex justify-center">
+  <h1 class="text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 text-center my-4"
+    style="font-family: 'Montserrat', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.15);">
+    💰 Sistema de Contabilidad Web 💰
+  </h1>
+</header>
 
   <div class="container">
     <aside>
       <nav>
+        <!-- NUEVO GRUPO: Dashboards -->
+        <h3>📈 Dashboards</h3>
+        <ul>
+          <li data-target="dashboards">📊 Dashboards</li>
+        </ul>
+        <!-- FIN NUEVO -->
+
         <h3>💵 Ingresos</h3>
         <ul>
           <li data-target="factura-venta">📄 Facturas de venta</li>
@@ -54,6 +66,90 @@
     </aside>
 
     <main>
+
+      <!-- NUEVA SECCIÓN: Dashboards -->
+      <section id="dashboards" class="contenido-seccion" style="display:none;">
+        <h2 class="text-xl font-semibold mb-4">📈 Dashboards</h2>
+
+        <!-- Tabs locales (no afectan tu JS de secciones) -->
+        <div class="mb-4 flex gap-2">
+          <button type="button" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" data-tab="ingresos">Ingresos</button>
+          <button type="button" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300" data-tab="gastos">Gastos</button>
+        </div>
+
+        <!-- Panel INGRESOS -->
+        <div id="panel-ingresos">
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ingresos (mes actual)</div>
+              <div id="kpi_ingresos_mes" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ingresos (últimos 30 días)</div>
+              <div id="kpi_ingresos_30d" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ticket promedio</div>
+              <div id="kpi_ticket_prom" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border mt-4">
+            <canvas id="chart_ingresos" height="110"></canvas>
+          </div>
+        </div>
+
+        <!-- Panel GASTOS -->
+        <div id="panel-gastos" style="display:none;">
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Gastos (mes actual)</div>
+              <div id="kpi_gastos_mes" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Gastos (últimos 30 días)</div>
+              <div id="kpi_gastos_30d" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Categoría top</div>
+              <div id="kpi_categoria_top" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border mt-4">
+            <canvas id="chart_gastos" height="110"></canvas>
+          </div>
+        </div>
+
+        <!-- Script chiquito solo para alternar los tabs internos -->
+        <script>
+          (function(){
+            const btnIngresos = document.querySelector('#dashboards [data-tab="ingresos"]');
+            const btnGastos = document.querySelector('#dashboards [data-tab="gastos"]');
+            const pIng = document.getElementById('panel-ingresos');
+            const pGas = document.getElementById('panel-gastos');
+            if (btnIngresos && btnGastos && pIng && pGas) {
+              btnIngresos.addEventListener('click', () => {
+                pIng.style.display = 'block';
+                pGas.style.display = 'none';
+                btnIngresos.classList.add('bg-blue-600','text-white');
+                btnGastos.classList.remove('bg-blue-600','text-white');
+                btnGastos.classList.add('bg-gray-200');
+                // Evento para que tu main.js pueda detectar y cargar datos si quieres
+                document.dispatchEvent(new CustomEvent('dashboards:show', { detail: { tab: 'ingresos' } }));
+              });
+              btnGastos.addEventListener('click', () => {
+                pIng.style.display = 'none';
+                pGas.style.display = 'block';
+                btnGastos.classList.add('bg-blue-600','text-white');
+                btnIngresos.classList.remove('bg-blue-600','text-white');
+                btnIngresos.classList.add('bg-gray-200');
+                document.dispatchEvent(new CustomEvent('dashboards:show', { detail: { tab: 'gastos' } }));
+              });
+            }
+          })();
+        </script>
+      </section>
+      <!-- FIN NUEVA SECCIÓN -->
+
       <!-- Factura de Venta -->
       <section id="factura-venta" class="contenido-seccion">
         <h2>Registrar Factura de Venta</h2>
@@ -409,7 +505,9 @@
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="main.js"></script>
+  <script src="dashboards.js"></script>
   <script>
   // fallback: mostrar todo por si algún JS falla antes de enganchar el sidebar
   document.addEventListener('DOMContentLoaded', () => {
@@ -418,6 +516,3 @@
 </script>
 </body>
 </html>
-
-
-

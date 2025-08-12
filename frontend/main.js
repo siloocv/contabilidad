@@ -38,6 +38,7 @@ async function cargarTabla(path, tbodyId, cols) {
   const res = await fetch(`${API_BASE}${path}`);
   const data = await res.json();
   const tbody = document.getElementById(tbodyId);
+  if (!tbody) return;
   tbody.innerHTML = "";
   data.forEach(item => {
     const tr = document.createElement("tr");
@@ -100,6 +101,17 @@ async function submitForm(form, endpoint, method="POST", extra={}) {
 
     form.reset();
     cargarTodo();
+
+    // Refrescar dashboards si aplica
+    try {
+      if (typeof window.refreshDashboards === 'function') {
+        if (endpoint.includes('/api/facturas/venta') ||
+            endpoint.includes('/api/facturas/compra') ||
+            endpoint.includes('/api/factura-items')) {
+          window.refreshDashboards();
+        }
+      }
+    } catch (_) {}
   } catch (e) {
     mostrarMensaje(form, `❌ ${e.message}`, "error");
   } finally {
@@ -204,7 +216,8 @@ async function cargarClientesDropdown() {
     clientes.forEach(cliente => {
       const option = document.createElement("option");
       option.value = cliente.nombre;
-      option.textContent = `${cliente.nombre} (${cliente.identificacion || 'Sin ID'})`;
+      option.textContent = `${cliente.nombre} (${cliente.identificacion || 'Sin ID'})`
+      ;
       select.appendChild(option);
     });
   } catch (error) {
@@ -274,7 +287,7 @@ async function cargarProductosDropdowns() {
 }
 
 /* ============================================================
-   UI mínima para manejar ítems (reutiliza tus propios campos)
+   UI mínima para manejar ítems
    ============================================================ */
 function setupItemsUI({ form, selectProductoId, cantidadName, totalInputName, itemsStateKey }) {
   // Estado por formulario
@@ -288,7 +301,12 @@ function setupItemsUI({ form, selectProductoId, cantidadName, totalInputName, it
     box.style.margin = "10px 0";
     box.innerHTML = `
       <div style="display:flex; gap:8px; align-items:center; margin:6px 0;">
-        <button type="button" class="btn-add-item">➕ Agregar ítem</button>
+        <button type="button"
+        class="btn-add-item !inline-flex !items-center !gap-2
+               !px-4 !py-2 !rounded-md
+               !bg-blue-600 !text-white hover:!bg-blue-700 active:!bg-blue-800">
+  <span>➕</span> Agregar ítem
+</button>
         <span style="opacity:.7">Use el selector de producto y la cantidad del formulario, luego pulse "Agregar ítem".</span>
       </div>
       <table style="width:100%; border-collapse: collapse; margin-top:6px;">
@@ -376,6 +394,7 @@ function setupItemsUI({ form, selectProductoId, cantidadName, totalInputName, it
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  document.querySelectorAll('main section h2').forEach(h => h.classList.add('subtitle'));
   // Cargar dropdowns al inicio
   cargarClientesDropdown();
   cargarProveedoresDropdowns();
@@ -456,6 +475,9 @@ catch { document.querySelectorAll('.contenido-seccion').forEach(s => s.style.dis
         // opcional: ejecutar ETL
         try { await fetch(`${API_BASE}/api/pipeline/run`, { method: "POST" }); } catch {}
 
+        // refrescar dashboards
+        try { if (typeof window.refreshDashboards === 'function') window.refreshDashboards(); } catch {}
+
         formVenta.reset();
         ventaItems.clear();
         cargarTodo();
@@ -523,6 +545,9 @@ catch { document.querySelectorAll('.contenido-seccion').forEach(s => s.style.dis
         mostrarMensaje(formCompra, `✅ ${result.message}. Raw ID: ${result.raw_id}.`, "success");
 
         try { await fetch(`${API_BASE}/api/pipeline/run`, { method: "POST" }); } catch {}
+
+        // refrescar dashboards
+        try { if (typeof window.refreshDashboards === 'function') window.refreshDashboards(); } catch {}
 
         formCompra.reset();
         compraItems.clear();
@@ -795,35 +820,39 @@ catch { document.querySelectorAll('.contenido-seccion').forEach(s => s.style.dis
 
       // Ventas pendientes
       const tbodyVentas = document.getElementById("tabla-ventas-pendientes");
-      tbodyVentas.innerHTML = "";
-      pendientes.facturas_venta_pendientes.forEach(f => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${f.id}</td>
-          <td>${f.cliente}</td>
-          <td>₡${f.monto.toFixed(2)}</td>
-          <td>₡${f.pagado.toFixed(2)}</td>
-          <td style="color: red; font-weight: bold;">₡${f.pendiente.toFixed(2)}</td>
-          <td>${f.fecha}</td>
-        `;
-        tbodyVentas.append(tr);
-      });
+      if (tbodyVentas) {
+        tbodyVentas.innerHTML = "";
+        pendientes.facturas_venta_pendientes.forEach(f => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${f.id}</td>
+            <td>${f.cliente}</td>
+            <td>₡${f.monto.toFixed(2)}</td>
+            <td>₡${f.pagado.toFixed(2)}</td>
+            <td style="color: red; font-weight: bold;">₡${f.pendiente.toFixed(2)}</td>
+            <td>${f.fecha}</td>
+          `;
+          tbodyVentas.append(tr);
+        });
+      }
 
       // Compras pendientes
       const tbodyCompras = document.getElementById("tabla-compras-pendientes");
-      tbodyCompras.innerHTML = "";
-      pendientes.facturas_compra_pendientes.forEach(f => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td>${f.id}</td>
-          <td>${f.proveedor}</td>
-          <td>₡${f.monto.toFixed(2)}</td>
-          <td>₡${f.pagado.toFixed(2)}</td>
-          <td style="color: red; font-weight: bold;">₡${f.pendiente.toFixed(2)}</td>
-          <td>${f.fecha}</td>
-        `;
-        tbodyCompras.append(tr);
-      });
+      if (tbodyCompras) {
+        tbodyCompras.innerHTML = "";
+        pendientes.facturas_compra_pendientes.forEach(f => {
+          const tr = document.createElement("tr");
+          tr.innerHTML = `
+            <td>${f.id}</td>
+            <td>${f.proveedor}</td>
+            <td>₡${f.monto.toFixed(2)}</td>
+            <td>₡${f.pagado.toFixed(2)}</td>
+            <td style="color: red; font-weight: bold;">₡${f.pendiente.toFixed(2)}</td>
+            <td>${f.fecha}</td>
+          `;
+          tbodyCompras.append(tr);
+        });
+      }
 
       mostrarMensaje(sec, "✅ Reportes actualizados", "success");
     } catch (e) {
