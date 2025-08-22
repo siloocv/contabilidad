@@ -1,0 +1,23 @@
+# Carpetas y archivos innecesarios
+venv
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite3
+
+# Git
+.git
+.gitignore
+
+# MacOS
+.DS_Store
+
+# Logs y backups
+backups/
+logs/
+
+# Node/Tailwind
+frontend/node_modules
+frontend/dist
