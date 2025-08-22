@@ -1,0 +1,11 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino
+1,ingreso,Stephanie - test,500.0,2025-08-01 00:00:00,2025-08-01 17:07:11,etl_pipeline,facturas_venta
+2,ingreso,Sebas - test2,800.0,2025-08-02 00:00:00,2025-08-01 17:07:38,etl_pipeline,facturas_venta
+3,ingreso,Jessie - test3,1000.0,2025-08-02 00:00:00,2025-08-01 17:14:10,etl_pipeline,facturas_venta
+4,gasto,Mayca - test3,9000.0,2025-08-01 00:00:00,2025-08-01 17:18:28,etl_pipeline,facturas_compra
+5,ingreso,test6,500.0,2025-08-02 00:00:00,2025-08-01 17:57:48,etl_pipeline,facturas_venta
+6,gasto,pampers,800.0,2025-08-15 00:00:00,2025-08-01 17:58:30,etl_pipeline,facturas_compra
+7,ingreso,venta de carro,8000000.0,2025-08-02 00:00:00,2025-08-01 18:09:27,etl_pipeline,facturas_venta
+8,ingreso,Devolución de compra,-1000.0,2025-08-03 00:00:00,2025-08-01 18:15:25,etl_pipeline,facturas_venta
+11,ingreso,Javi - prueba agosto 5,9000.0,2025-08-06 00:00:00,2025-08-06 04:01:31,etl_pipeline,facturas_venta
+12,ingreso,Fran - prueba agosto 6,8000.0,2025-08-05 00:00:00,2025-08-06 04:09:40,etl_pipeline,facturas_venta

@@ -24,6 +24,7 @@ class RawData(Base):
     fecha = Column(DateTime)
     creado_en = Column(DateTime, default=datetime.utcnow)
     tabla_destino = Column(String(100))
+    metadata_json = Column(Text, nullable=True)
 
 class CleanedData(Base):
     __tablename__ = "cleaned_data"
@@ -119,6 +120,18 @@ class Cliente(Base):
     correo = Column(String(150))
     telefono = Column(String(50))
     direccion = Column(Text)
+    creado_en = Column(DateTime, default=datetime.utcnow)
+
+class Proveedor(Base):
+    __tablename__ = "proveedores"
+    id = Column(Integer, primary_key=True, index=True)
+    nombre = Column(String(150), nullable=False)
+    identificacion = Column(String(50), unique=True)
+    correo = Column(String(150))
+    telefono = Column(String(50))
+    direccion = Column(Text)
+    contacto_nombre = Column(String(150))
+    contacto_telefono = Column(String(50))
     creado_en = Column(DateTime, default=datetime.utcnow)
 
 class Producto(Base):

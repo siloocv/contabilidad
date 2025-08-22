@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ====== COMPONENTES REUTILIZABLES ====== */
+@layer components {
+  /* Subtítulos */
+  .subtitle {
+    @apply flex items-center gap-2
+    text-2xl font-semibold
+    text-sky-600 drop-shadow-sm;
+  }
+
+  .subtitle-icon {
+    @apply text-[22px] leading-none;
+  }
+
+  /* Botón primario */
+  .btn {
+    @apply inline-flex items-center justify-center gap-2
+    px-4 py-2 rounded-md
+    font-medium text-white
+    bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+    transition-colors
+    disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* ====== COMPONENTES ====== */
+  @layer components {
+    /* Subtítulos (como Dashboards, sin icono) */
+    .subtitle {
+      @apply text-xl font-semibold mb-4;
+    }
+
+    /* Botón primario (por si lo quieres usar explícito) */
+    .btn {
+      @apply inline-flex items-center justify-center gap-2
+      px-4 py-2 rounded-md
+      font-medium text-white
+      bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+      transition-colors
+      disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    /* Variantes */
+    .btn-outline {
+      /* Outline verdadero (sin fondo azul) */
+      @apply inline-flex items-center justify-center gap-2
+      px-4 py-2 rounded-md
+      border border-blue-200 text-blue-700 bg-white
+      hover:bg-blue-50 transition;
+    }
+
+    .btn-danger {
+      @apply inline-flex items-center justify-center gap-2
+      px-4 py-2 rounded-md
+      text-white bg-red-600 hover:bg-red-700 active:bg-red-800;
+    }
+
+    /* Si quieres margen también al botón de "Agregar ítem" que se crea por JS: */
+    .btn-add-item {
+      @apply mt-4;
+    }
+  }
+
+  /* ====== ESTILOS BASE ====== */
+  @layer base {
+    /* Estilo global de TODOS los botones */
+    button, input[type="submit"] {
+      @apply inline-flex items-center justify-center gap-2
+      px-4 py-2 rounded-md
+      font-medium text-white
+      bg-blue-600 hover:bg-blue-700 active:bg-blue-800
+      transition-colors
+      disabled:opacity-50 disabled:cursor-not-allowed;
+    }
+
+    /* Separación arriba SOLO cuando el botón está en un <form> */
+    form button, form input[type="submit"] {
+      @apply mt-4;
+    }
+  }
+}

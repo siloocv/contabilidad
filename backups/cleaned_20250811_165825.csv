@@ -1,0 +1,5 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino,metadata_json
+1,cliente,Cliente: Patricia Viquez Morera,0.0,2025-08-07 00:00:00,2025-08-08 05:24:03,etl_pipeline,clientes,"{""nombre"": ""Patricia Viquez Morera"", ""identificacion"": ""4-0234-0234"", ""correo"": ""pa.viquez@gmail.com"", ""telefono"": ""2234-0987"", ""direccion"": ""Heredia, Heredia, Avenida 33""}"
+2,ingreso,ACME S.A. - Factura de prueba,0.0,2025-08-11 00:00:00,2025-08-11 03:57:55,etl_pipeline,facturas_venta,"{""items"": [{""producto_id"": 1, ""cantidad"": 2, ""precio"": 100.0}, {""producto_id"": 1, ""cantidad"": 1, ""precio"": 50.0}]}"
+3,ingreso,Empresa Tech Solutions S.A. - test,0.0,2025-08-10 00:00:00,2025-08-11 05:06:50,etl_pipeline,facturas_venta,"{""items"": [{""producto_id"": 1, ""cantidad"": 1, ""precio"": 750000.0}, {""producto_id"": 3, ""cantidad"": 1, ""precio"": 45000.0}]}"
+4,ingreso,Comercial El Buen Precio - test,0.0,2025-08-11 00:00:00,2025-08-11 22:58:14,etl_pipeline,facturas_venta,"{""items"": [{""producto_id"": 1, ""cantidad"": 1, ""precio"": 750000.0}, {""producto_id"": 2, ""cantidad"": 1, ""precio"": 15000.0}]}"

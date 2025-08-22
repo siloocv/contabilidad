@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,validado_por,tabla_destino
+1,cliente,Cliente: Patricia Viquez Morera,0.0,2025-08-07 00:00:00,2025-08-08 05:24:03,etl_pipeline,clientes

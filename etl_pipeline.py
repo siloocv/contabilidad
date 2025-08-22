@@ -6,7 +6,7 @@ from decimal import Decimal
 import os
 
 # URL de conexión
-DATABASE_URL = "mysql+pymysql://sebas:YES@localhost:3306/contabilidad?charset=utf8mb4"
+DATABASE_URL = "mysql+pymysql://root:siloe461@localhost:3306/contabilidad?charset=utf8mb4"
 engine = create_engine(DATABASE_URL)
 
 # Directorios de respaldo y logs
@@ -20,6 +20,9 @@ VALID_TYPES = {
     "factura_recurrente": "facturas_recurrentes_template",
     "pago_recibido": "pagos_recibidos",
     "pago_proveedor": "pagos_proveedor",
+    "cliente": "clientes",
+    "proveedor": "proveedores",
+    "producto": "productos",
 }
 
 
@@ -62,6 +65,7 @@ def run_etl():
                 "creado_en": creado_en,
                 "validado_por": "etl_pipeline",
                 "tabla_destino": VALID_TYPES[tipo],
+                "metadata_json": row_dict.get("metadata_json"),
             }
             cleaned.append(cleaned_item)
 
@@ -103,32 +107,113 @@ def run_etl():
                     text("SELECT id FROM facturas_venta WHERE raw_id = :rid"), {"rid": raw_id}
                 ).fetchone()
                 if not exists:
+                    # Leer items desde metadata_json (si vienen)
+                    items = []
+                    try:
+                        meta = item.get("metadata_json")
+                        if meta:
+                            meta_obj = json.loads(meta)
+                            items = meta_obj.get("items", [])
+                    except Exception:
+                        items = []
+
+                    # Calcular total (si no hay items, usar monto legacy)
+                    if items:
+                        total = sum(
+                            Decimal(str(i.get("cantidad", 0))) * Decimal(str(i.get("precio", 0))) for i in items)
+                    else:
+                        total = Decimal(str(monto))
+
+                    # Insertar factura
                     conn.execute(text("""
                         INSERT INTO facturas_venta (cliente, descripcion, monto, fecha, raw_id)
                         VALUES (:cliente, :descripcion, :monto, :fecha, :rid)
                     """), {
                         "cliente": nombre,
                         "descripcion": desc,
-                        "monto": monto,
+                        "monto": float(total),
                         "fecha": fecha.date() if hasattr(fecha, "date") else fecha,
                         "rid": raw_id
                     })
+                    factura_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+                    # Insertar items
+                    if items:
+                        for it in items:
+                            conn.execute(text("""
+                                INSERT INTO factura_items (factura_tipo, factura_venta_id, producto_id, cantidad, precio)
+                                VALUES ('venta', :fid, :pid, :cant, :precio)
+                            """), {
+                                "fid": factura_id,
+                                "pid": int(it["producto_id"]),
+                                "cant": Decimal(str(it["cantidad"])),
+                                "precio": Decimal(str(it["precio"]))
+                            })
+                    else:
+                        # Compatibilidad: 1 ítem único con el monto original
+                        conn.execute(text("""
+                            INSERT INTO factura_items (factura_tipo, factura_venta_id, producto_id, cantidad, precio)
+                            VALUES ('venta', :fid, :pid, :cant, :precio)
+                        """), {
+                            "fid": factura_id,
+                            "pid": 1,  # Asegúrate de tener un producto genérico con id=1
+                            "cant": Decimal("1"),
+                            "precio": Decimal(str(monto))
+                        })
 
             elif tipo == "gasto":
                 exists = conn.execute(
                     text("SELECT id FROM facturas_compra WHERE raw_id = :rid"), {"rid": raw_id}
                 ).fetchone()
                 if not exists:
+                    items = []
+                    try:
+                        meta = item.get("metadata_json")
+                        if meta:
+                            meta_obj = json.loads(meta)
+                            items = meta_obj.get("items", [])
+                    except Exception:
+                        items = []
+
+                    if items:
+                        total = sum(
+                            Decimal(str(i.get("cantidad", 0))) * Decimal(str(i.get("precio", 0))) for i in items)
+                    else:
+                        total = Decimal(str(monto))
+
                     conn.execute(text("""
                         INSERT INTO facturas_compra (proveedor, descripcion, monto, fecha, raw_id)
                         VALUES (:proveedor, :descripcion, :monto, :fecha, :rid)
                     """), {
                         "proveedor": nombre,
                         "descripcion": desc,
-                        "monto": monto,
+                        "monto": float(total),
                         "fecha": fecha.date() if hasattr(fecha, "date") else fecha,
                         "rid": raw_id
                     })
+                    factura_id = conn.execute(text("SELECT LAST_INSERT_ID()")).scalar()
+
+                    if items:
+                        for it in items:
+                            conn.execute(text("""
+                                INSERT INTO factura_items (factura_tipo, factura_compra_id, producto_id, cantidad, precio)
+                                VALUES ('compra', :fid, :pid, :cant, :precio)
+                            """), {
+                                "fid": factura_id,
+                                "pid": int(it["producto_id"]),
+                                "cant": Decimal(str(it["cantidad"])),
+                                "precio": Decimal(str(it["precio"]))
+                            })
+                    else:
+                        conn.execute(text("""
+                            INSERT INTO factura_items (factura_tipo, factura_compra_id, producto_id, cantidad, precio)
+                            VALUES ('compra', :fid, :pid, :cant, :precio)
+                        """), {
+                            "fid": factura_id,
+                            "pid": 1,  # producto genérico
+                            "cant": Decimal("1"),
+                            "precio": Decimal(str(monto))
+                        })
 
             elif tipo == "orden_compra":
                 exists = conn.execute(
@@ -181,12 +266,92 @@ def run_etl():
                 ).fetchone()
                 if not exists:
                     parts = desc.split(" - ", 1)
-                    # Asumir primero factura_compra o orden_compra
-                    fk = int(parts[0])
-                    conn.execute(text("""
-                        INSERT INTO pagos_proveedor (factura_compra_id, orden_compra_id, monto, fecha, raw_id)
-                        VALUES (:fc, NULL, :monto, :fecha, :rid)
-                    """), {"fc": fk, "monto": monto, "fecha": fecha, "rid": raw_id})
+                    # Parse FC-X or OC-X
+                    ref_type = parts[0].split("-")[0] if "-" in parts[0] else "FC"
+                    ref_id = int(parts[0].split("-")[1]) if "-" in parts[0] else int(parts[0])
+                    if ref_type == "FC":
+                        conn.execute(text("""
+                            INSERT INTO pagos_proveedor (factura_compra_id, orden_compra_id, monto, fecha, raw_id)
+                            VALUES (:fc, NULL, :monto, :fecha, :rid)
+                        """), {"fc": ref_id, "monto": monto, "fecha": fecha, "rid": raw_id})
+                    else:
+                        conn.execute(text("""
+                            INSERT INTO pagos_proveedor (factura_compra_id, orden_compra_id, monto, fecha, raw_id)
+                            VALUES (NULL, :oc, :monto, :fecha, :rid)
+                        """), {"oc": ref_id, "monto": monto, "fecha": fecha, "rid": raw_id})
+            
+            elif tipo == "cliente":
+                # Los clientes se almacenan con metadata JSON
+                metadata_str = conn.execute(
+                    text("SELECT metadata_json FROM raw_data WHERE id = :rid"),
+                    {"rid": raw_id}
+                ).scalar()
+                if metadata_str:
+                    metadata = json.loads(metadata_str)
+                    exists = conn.execute(
+                        text("SELECT id FROM clientes WHERE nombre = :nombre"),
+                        {"nombre": metadata.get("nombre")}
+                    ).fetchone()
+                    if not exists:
+                        conn.execute(text("""
+                            INSERT INTO clientes (nombre, identificacion, correo, telefono, direccion)
+                            VALUES (:nombre, :identificacion, :correo, :telefono, :direccion)
+                        """), {
+                            "nombre": metadata.get("nombre"),
+                            "identificacion": metadata.get("identificacion"),
+                            "correo": metadata.get("correo"),
+                            "telefono": metadata.get("telefono"),
+                            "direccion": metadata.get("direccion")
+                        })
+            
+            elif tipo == "proveedor":
+                # Los proveedores se almacenan con metadata JSON
+                metadata_str = conn.execute(
+                    text("SELECT metadata_json FROM raw_data WHERE id = :rid"),
+                    {"rid": raw_id}
+                ).scalar()
+                if metadata_str:
+                    metadata = json.loads(metadata_str)
+                    exists = conn.execute(
+                        text("SELECT id FROM proveedores WHERE nombre = :nombre"),
+                        {"nombre": metadata.get("nombre")}
+                    ).fetchone()
+                    if not exists:
+                        conn.execute(text("""
+                            INSERT INTO proveedores (nombre, identificacion, correo, telefono, direccion, contacto_nombre, contacto_telefono)
+                            VALUES (:nombre, :identificacion, :correo, :telefono, :direccion, :contacto_nombre, :contacto_telefono)
+                        """), {
+                            "nombre": metadata.get("nombre"),
+                            "identificacion": metadata.get("identificacion"),
+                            "correo": metadata.get("correo"),
+                            "telefono": metadata.get("telefono"),
+                            "direccion": metadata.get("direccion"),
+                            "contacto_nombre": metadata.get("contacto_nombre"),
+                            "contacto_telefono": metadata.get("contacto_telefono")
+                        })
+            
+            elif tipo == "producto":
+                # Los productos se almacenan con metadata JSON
+                metadata_str = conn.execute(
+                    text("SELECT metadata_json FROM raw_data WHERE id = :rid"),
+                    {"rid": raw_id}
+                ).scalar()
+                if metadata_str:
+                    metadata = json.loads(metadata_str)
+                    exists = conn.execute(
+                        text("SELECT id FROM productos WHERE nombre = :nombre"),
+                        {"nombre": metadata.get("nombre")}
+                    ).fetchone()
+                    if not exists:
+                        conn.execute(text("""
+                            INSERT INTO productos (nombre, sku, precio_unitario, descripcion)
+                            VALUES (:nombre, :sku, :precio_unitario, :descripcion)
+                        """), {
+                            "nombre": metadata.get("nombre"),
+                            "sku": metadata.get("sku"),
+                            "precio_unitario": float(metadata.get("precio_unitario", 0)),
+                            "descripcion": metadata.get("descripcion")
+                        })
 
         # 7. Registro de log
         log_data = {

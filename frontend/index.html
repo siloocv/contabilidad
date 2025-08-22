@@ -3,77 +3,214 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Contabilidad Web</title>
+  <title>💼 Sistema de Contabilidad Web</title>
+  <link rel="stylesheet" href="./dist/tailwind.css">
+  <link rel="stylesheet" href="./style.css">
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@700;900&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="shortcut icon" href="favicon.svg" type="image/svg+xml">
+
+  <!-- Para navegadores que no soporten SVG -->
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75'>💰</text></svg>">
+
   <script>
     window.__API_BASE__ = "http://127.0.0.1:8000";
   </script>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h1>Contabilidad Web</h1>
-  </header>
+  <body class="min-h-screen bg-gradient-to-br from-slate-50 via-sky-50 to-indigo-50">
+<header class="!bg-transparent !border-0 !shadow-none !px-4 flex justify-center">
+  <h1 class="text-9xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-sky-500 to-indigo-600 text-center my-4"
+    style="font-family: 'Montserrat', sans-serif; text-shadow: 2px 2px 4px rgba(0,0,0,0.15);">
+    💰 Sistema de Contabilidad Web 💰
+  </h1>
+</header>
 
   <div class="container">
     <aside>
       <nav>
-        <h3>Ingresos</h3>
+        <!-- NUEVO GRUPO: Dashboards -->
+        <h3>📈 Dashboards</h3>
         <ul>
-          <li data-target="factura-venta">Facturas de venta</li>
-          <li data-target="recurrentes">Facturas recurrentes</li>
-          <li data-target="pagos-recibidos">Pagos recibidos</li>
+          <li data-target="dashboards">📊 Dashboards</li>
         </ul>
-        <h3>Gastos</h3>
+        <!-- FIN NUEVO -->
+
+        <h3>💵 Ingresos</h3>
         <ul>
-          <li data-target="factura-compra">Facturas de compra</li>
-          <li data-target="orden-compra">Órdenes de compra</li>
-          <li data-target="pagos-proveedor">Pagos a proveedor</li>
+          <li data-target="factura-venta">📄 Facturas de venta</li>
+          <li data-target="pagos-recibidos">✅ Pagos recibidos</li>
         </ul>
-        <h3>Maestros</h3>
+        <h3>💸 Gastos</h3>
         <ul>
-          <li data-target="clientes">Clientes</li>
-          <li data-target="productos">Productos</li>
+          <li data-target="factura-compra">📋 Facturas de compra</li>
+          <li data-target="orden-compra">📝 Órdenes de compra</li>
+          <li data-target="pagos-proveedor">💳 Pagos a proveedor</li>
+        </ul>
+        <h3>📚 Maestros</h3>
+        <ul>
+          <li data-target="clientes">👥 Clientes</li>
+          <li data-target="proveedores">🏢 Proveedores</li>
+          <li data-target="productos">📦 Productos</li>
+          <li data-target="factura-items">📦 Items de Facturas</li>
         </ul>
         <h3>Admin</h3>
         <ul>
           <li data-target="admin-etl">🛠 Datos limpios (ETL)</li>
+          <li data-target="reportes">📊 Reportes</li>
         </ul>
       </nav>
     </aside>
 
     <main>
+
+      <!-- NUEVA SECCIÓN: Dashboards -->
+      <section id="dashboards" class="contenido-seccion" style="display:none;">
+        <h2 class="text-xl font-semibold mb-4">📈 Dashboards</h2>
+
+        <!-- Tabs locales (no afectan tu JS de secciones) -->
+        <div class="mb-4 flex gap-2">
+          <button type="button" class="px-3 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700" data-tab="ingresos">Ingresos</button>
+          <button type="button" class="px-3 py-2 rounded-md bg-gray-200 hover:bg-gray-300" data-tab="gastos">Gastos</button>
+        </div>
+
+        <!-- Panel INGRESOS -->
+        <div id="panel-ingresos">
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ingresos (mes actual)</div>
+              <div id="kpi_ingresos_mes" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ingresos (últimos 30 días)</div>
+              <div id="kpi_ingresos_30d" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Ticket promedio</div>
+              <div id="kpi_ticket_prom" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border mt-4">
+            <canvas id="chart_ingresos" height="110"></canvas>
+          </div>
+        </div>
+
+        <!-- Panel GASTOS -->
+        <div id="panel-gastos" style="display:none;">
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Gastos (mes actual)</div>
+              <div id="kpi_gastos_mes" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Gastos (últimos 30 días)</div>
+              <div id="kpi_gastos_30d" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+            <div class="p-4 bg-white rounded-xl border">
+              <div class="text-sm text-gray-500">Categoría top</div>
+              <div id="kpi_categoria_top" class="text-2xl font-semibold mt-1">—</div>
+            </div>
+          </div>
+          <div class="p-4 bg-white rounded-xl border mt-4">
+            <canvas id="chart_gastos" height="110"></canvas>
+          </div>
+        </div>
+
+        <!-- Script chiquito solo para alternar los tabs internos -->
+        <script>
+          (function(){
+            const btnIngresos = document.querySelector('#dashboards [data-tab="ingresos"]');
+            const btnGastos = document.querySelector('#dashboards [data-tab="gastos"]');
+            const pIng = document.getElementById('panel-ingresos');
+            const pGas = document.getElementById('panel-gastos');
+            if (btnIngresos && btnGastos && pIng && pGas) {
+              btnIngresos.addEventListener('click', () => {
+                pIng.style.display = 'block';
+                pGas.style.display = 'none';
+                btnIngresos.classList.add('bg-blue-600','text-white');
+                btnGastos.classList.remove('bg-blue-600','text-white');
+                btnGastos.classList.add('bg-gray-200');
+                // Evento para que tu main.js pueda detectar y cargar datos si quieres
+                document.dispatchEvent(new CustomEvent('dashboards:show', { detail: { tab: 'ingresos' } }));
+              });
+              btnGastos.addEventListener('click', () => {
+                pIng.style.display = 'none';
+                pGas.style.display = 'block';
+                btnGastos.classList.add('bg-blue-600','text-white');
+                btnIngresos.classList.remove('bg-blue-600','text-white');
+                btnIngresos.classList.add('bg-gray-200');
+                document.dispatchEvent(new CustomEvent('dashboards:show', { detail: { tab: 'gastos' } }));
+              });
+            }
+          })();
+        </script>
+      </section>
+      <!-- FIN NUEVA SECCIÓN -->
+
       <!-- Factura de Venta -->
       <section id="factura-venta" class="contenido-seccion">
         <h2>Registrar Factura de Venta</h2>
         <form id="form-venta">
-          <label>Cliente:</label>
-          <input type="text" name="cliente" required />
-          <label>Descripción:</label>
-          <input type="text" name="descripcion" required />
-          <label>Monto (₡):</label>
-          <input type="number" name="monto" required step="0.01" />
-          <label>Fecha:</label>
-          <input type="date" name="fecha" required />
-          <button type="submit">Guardar factura</button>
-          <div class="status-container"></div>
-        </form>
-        <h3>Listado Facturas de Venta</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Fecha</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-venta"></tbody>
-        </table>
-      </section>
+  <label>Cliente:</label>
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <select id="select-cliente-venta" name="cliente_select" style="flex: 1;">
+      <option value="">-- Seleccione cliente existente --</option>
+      <option value="nuevo">➕ Crear nuevo cliente</option>
+    </select>
+    <input type="text" name="cliente" placeholder="O escriba nombre del cliente" style="flex: 1;" />
+  </div>
+
+  <label>Descripción:</label>
+  <input type="text" name="descripcion" required />
+  <label>Producto (opcional):</label>
+  <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+    <select id="select-producto-venta" name="producto_select" style="flex: 1;">
+      <option value="">-- Seleccione producto --</option>
+      <option value="nuevo">➕ Crear nuevo producto</option>
+    </select>
+    <input type="number" name="cantidad" placeholder="Cantidad" min="1" style="width: 100px;" />
+  </div>
+
+  <!-- Mantengo el campo monto pero lo dejo readonly (compat visual) -->
+  <label>Monto (₡):</label>
+  <input type="number" name="monto" step="0.01" readonly style="background:#f5f5f5;" />
+
+  <label>Fecha:</label>
+  <input type="date" name="fecha" required />
+
+  <button class="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700">
+  Guardar factura
+  </button>
+
+</form>
+
+</section>
 
       <!-- Factura de Compra -->
       <section id="factura-compra" class="contenido-seccion" style="display:none;">
         <h2>Registrar Factura de Compra</h2>
         <form id="form-compra">
           <label>Proveedor:</label>
-          <input type="text" name="proveedor" required />
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <select id="select-proveedor-compra" name="proveedor_select" style="flex: 1;">
+              <option value="">-- Seleccione proveedor existente --</option>
+              <option value="nuevo">➕ Crear nuevo proveedor</option>
+            </select>
+            <input type="text" name="proveedor" placeholder="O escriba nombre del proveedor" style="flex: 1;" />
+          </div>
+
+          <label>Producto (opcional):</label>
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <select id="select-producto-compra" name="producto_select" style="flex: 1;">
+              <option value="">-- Seleccione producto --</option>
+              <option value="nuevo">➕ Crear nuevo producto</option>
+            </select>
+            <input type="number" name="cantidad" placeholder="Cantidad" min="1" style="width: 100px;" />
+          </div>
+
           <label>Descripción:</label>
           <input type="text" name="descripcion" required />
           <label>Monto (₡):</label>
@@ -94,38 +231,12 @@
         </table>
       </section>
 
-      <!-- Facturas Recurrentes -->
-      <section id="recurrentes" class="contenido-seccion" style="display:none;">
-        <h2>Crear plantilla de factura recurrente</h2>
-        <form id="form-recurrente">
-          <label>Cliente:</label>
-          <input type="text" name="cliente" required />
-          <label>Descripción:</label>
-          <input type="text" name="descripcion" required />
-          <label>Monto (₡):</label>
-          <input type="number" name="monto" required step="0.01" />
-          <label>Frecuencia (ej. mensual):</label>
-          <input type="text" name="frecuencia" required />
-          <button type="submit">Crear plantilla</button>
-          <div class="status-container"></div>
-        </form>
-        <h3>Plantillas existentes</h3>
-        <table>
-          <thead>
-            <tr>
-              <th>ID</th><th>Cliente</th><th>Descripción</th><th>Monto</th><th>Frecuencia</th><th>Siguiente generación</th><th>Acciones</th>
-            </tr>
-          </thead>
-          <tbody id="tabla-recurrentes"></tbody>
-        </table>
-      </section>
-
       <!-- Pagos Recibidos -->
       <section id="pagos-recibidos" class="contenido-seccion" style="display:none;">
         <h2>Registrar Pago Recibido</h2>
         <form id="form-pago-recibido">
           <label>ID factura venta (fv):</label>
-          <input type="number" name="factura_id" required />
+          <input type="number" name="factura_venta_id" required />
           <label>Monto (₡):</label>
           <input type="number" name="monto" required step="0.01" />
           <label>Fecha:</label>
@@ -149,7 +260,13 @@
         <h2>Registrar Orden de Compra</h2>
         <form id="form-orden-compra">
           <label>Proveedor:</label>
-          <input type="text" name="proveedor" required />
+          <div style="display: flex; gap: 10px; margin-bottom: 10px;">
+            <select id="select-proveedor-orden" name="proveedor_select" style="flex: 1;">
+              <option value="">-- Seleccione proveedor existente --</option>
+              <option value="nuevo">➕ Crear nuevo proveedor</option>
+            </select>
+            <input type="text" name="proveedor" placeholder="O escriba nombre del proveedor" style="flex: 1;" />
+          </div>
           <label>Descripción:</label>
           <input type="text" name="descripcion" required />
           <label>Monto (₡):</label>
@@ -224,6 +341,38 @@
         </table>
       </section>
 
+      <!-- Proveedores -->
+      <section id="proveedores" class="contenido-seccion" style="display:none;">
+        <h2>Registrar Proveedor</h2>
+        <form id="form-proveedores">
+          <label>Nombre:</label>
+          <input type="text" name="nombre" required />
+          <label>Identificación:</label>
+          <input type="text" name="identificacion" />
+          <label>Correo:</label>
+          <input type="email" name="correo" />
+          <label>Teléfono:</label>
+          <input type="text" name="telefono" />
+          <label>Dirección:</label>
+          <input type="text" name="direccion" />
+          <label>Nombre de Contacto:</label>
+          <input type="text" name="contacto_nombre" />
+          <label>Teléfono de Contacto:</label>
+          <input type="text" name="contacto_telefono" />
+          <button type="submit">Crear proveedor</button>
+          <div class="status-container"></div>
+        </form>
+        <h3>Listado Proveedores</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Nombre</th><th>Identificación</th><th>Correo</th><th>Teléfono</th><th>Dirección</th><th>Contacto</th><th>Tel. Contacto</th><th>Acciones</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-proveedores"></tbody>
+        </table>
+      </section>
+
       <!-- Productos -->
       <section id="productos" class="contenido-seccion" style="display:none;">
         <h2>Registrar Producto</h2>
@@ -265,12 +414,105 @@
           <tbody id="tabla-etl"></tbody>
         </table>
       </section>
+
+      <!-- Reportes -->
+      <section id="reportes" class="contenido-seccion" style="display:none;">
+        <h2>📊 Reportes Financieros</h2>
+        <button id="btn-generar-reportes">Actualizar Reportes</button>
+        <div class="status-container"></div>
+
+        <div id="resumen-financiero" style="margin-top: 20px;">
+          <h3>Resumen Financiero</h3>
+          <div id="resumen-content" style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px;">
+            <!-- Se llenará dinámicamente -->
+          </div>
+        </div>
+
+        <div id="facturas-pendientes" style="margin-top: 30px;">
+          <h3>Facturas Pendientes de Pago</h3>
+
+          <h4>Cuentas por Cobrar (Ventas)</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Cliente</th><th>Monto</th><th>Pagado</th><th>Pendiente</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-ventas-pendientes"></tbody>
+          </table>
+
+          <h4>Cuentas por Pagar (Compras)</h4>
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th><th>Proveedor</th><th>Monto</th><th>Pagado</th><th>Pendiente</th><th>Fecha</th>
+              </tr>
+            </thead>
+            <tbody id="tabla-compras-pendientes"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- Agregar Productos a Facturas -->
+      <section id="factura-items" class="contenido-seccion" style="display:none;">
+        <h2>📦 Agregar Productos a Facturas</h2>
+        <form id="form-factura-item">
+          <label>Tipo de Factura:</label>
+          <select name="factura_tipo" id="select-tipo-factura-item" required>
+            <option value="">Seleccione...</option>
+            <option value="venta">Factura de Venta</option>
+            <option value="compra">Factura de Compra</option>
+          </select>
+
+          <label id="label-factura-venta">Factura de Venta:</label>
+          <select name="factura_venta_id" id="select-factura-venta-item" style="width: 100%;">
+            <option value="">-- Seleccione factura de venta --</option>
+          </select>
+
+          <label id="label-factura-compra">Factura de Compra:</label>
+          <select name="factura_compra_id" id="select-factura-compra-item" style="width: 100%;">
+            <option value="">-- Seleccione factura de compra --</option>
+          </select>
+
+          <label>Producto:</label>
+          <select name="producto_id" id="select-producto-item" required style="width: 100%;">
+            <option value="">-- Seleccione producto --</option>
+          </select>
+
+          <label>Cantidad:</label>
+          <input type="number" name="cantidad" id="cantidad-item" required min="1" value="1" />
+
+          <label>Precio Unitario:</label>
+          <input type="number" name="precio" id="precio-item" required step="0.01" />
+
+          <label>Subtotal:</label>
+          <input type="number" id="subtotal-item" readonly style="background: #f0f0f0;" />
+
+          <button type="submit">Agregar Producto</button>
+          <div class="status-container"></div>
+        </form>
+
+        <h3>Items de Facturas</h3>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>Tipo</th><th>Factura Venta</th><th>Factura Compra</th><th>Producto</th><th>Cantidad</th><th>Precio</th><th>Subtotal</th>
+            </tr>
+          </thead>
+          <tbody id="tabla-factura-items"></tbody>
+        </table>
+      </section>
     </main>
   </div>
 
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
   <script src="main.js"></script>
+  <script src="dashboards.js"></script>
+  <script>
+  // fallback: mostrar todo por si algún JS falla antes de enganchar el sidebar
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.contenido-seccion').forEach(s => s.style.display = 'block');
+  });
+</script>
 </body>
 </html>
-
-
-

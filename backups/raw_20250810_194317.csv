@@ -1,0 +1,2 @@
+id,tipo,descripcion,monto,fecha,creado_en,tabla_destino,metadata_json
+1,cliente,Cliente: Patricia Viquez Morera,0.00,2025-08-07 00:00:00,2025-08-08 05:24:03,clientes,"{""nombre"": ""Patricia Viquez Morera"", ""identificacion"": ""4-0234-0234"", ""correo"": ""pa.viquez@gmail.com"", ""telefono"": ""2234-0987"", ""direccion"": ""Heredia, Heredia, Avenida 33""}"
