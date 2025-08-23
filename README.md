@@ -490,7 +490,7 @@ Este proyecto fue desarrollado como entregable académico. Para contribuciones:
 
 Proyecto académico - Universidad Lead University
 Desarrollado por: Sebastian Casanova, Siloe Campos, Stephanie Lopez
-Año: 2024
+Año: 2025
 
 ## 📞 Soporte
 
