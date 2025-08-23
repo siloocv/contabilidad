@@ -488,14 +488,13 @@ Este proyecto fue desarrollado como entregable académico. Para contribuciones:
 
 ## 📝 Licencia
 
-Proyecto académico - Universidad [Nombre Universidad]
-Desarrollado por: [Tu nombre]
+Proyecto académico - Universidad Lead University
+Desarrollado por: Sebastian Casanova, Siloe Campos, Stephanie Lopez
 Año: 2024
 
 ## 📞 Soporte
 
 Para reportar problemas o solicitar ayuda:
-- Crear un issue en GitHub
 - Contactar al desarrollador
 
 ---
